@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/taskmanager_notifications
+    username: taskmaster
+    password: taskmaster_secret
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  cache:
+    type: redis
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.taskmaster.*"
+  mail:
+    host: localhost
+    port: 1025
+    username: ""
+    password: ""
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8180/realms/taskmaster-app
+
+server:
+  port: 8083
+
+notification:
+  kafka:
+    retry:
+      max-attempts: 3
+      backoff-delay: 1000
+      backoff-multiplier: 2.0
+  idempotency:
+    ttl-hours: 24
+
+fcm:
+  service-account-key: ${FCM_SERVICE_ACCOUNT_KEY:}
+  project-id: ${FCM_PROJECT_ID:your-project-id}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs

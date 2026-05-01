@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/taskmanager_users
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8180/realms/taskmaster-admin
+
+keycloak:
+  admin:
+    server-url: http://keycloak:8180

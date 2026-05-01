@@ -1,0 +1,6 @@
+# PRODUCTION environment placeholder
+# Override with actual production infrastructure values
+logging.level.root: WARN
+logging.level.com.taskmaster: INFO
+management.endpoints.web.exposure.include: health,prometheus
+management.tracing.sampling.probability: 0.1

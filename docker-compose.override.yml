@@ -1,0 +1,28 @@
+# Development overrides — hot reload, debug ports, volume mounts
+# Applied automatically when running: docker compose up
+version: '3.9'
+
+services:
+  user-service:
+    environment:
+      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -XX:+UseContainerSupport"
+    ports:
+      - "5005:5005"   # Remote debug
+
+  task-service:
+    environment:
+      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006 -XX:+UseContainerSupport"
+    ports:
+      - "5006:5006"
+
+  notification-service:
+    environment:
+      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007 -XX:+UseContainerSupport"
+    ports:
+      - "5007:5007"
+
+  scheduler-service:
+    environment:
+      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5008 -XX:+UseContainerSupport"
+    ports:
+      - "5008:5008"

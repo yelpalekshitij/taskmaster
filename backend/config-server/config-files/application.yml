@@ -1,0 +1,53 @@
+# Shared configuration for ALL services
+spring:
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka:${EUREKA_PASSWORD:eureka_secret}@service-registry:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,loggers,metrics,env,caches
+  endpoint:
+    health:
+      show-details: always
+    loggers:
+      enabled: true
+  metrics:
+    tags:
+      service: ${spring.application.name}
+      version: ${spring.application.version:1.0.0}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+# Distributed tracing
+  tracing:
+    sampling:
+      probability: 1.0
+
+zipkin:
+  base-url: http://zipkin:9411
+
+spring.zipkin:
+  base-url: http://zipkin:9411
+  enabled: true
+
+# Logstash structured logging (shared tag — each service overrides service_name)
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId},%X{spanId}] %logger{36} - %msg%n"

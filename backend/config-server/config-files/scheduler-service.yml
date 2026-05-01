@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: scheduler-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/taskmanager_scheduler
+    username: taskmaster
+    password: taskmaster_secret
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.isClustered: true
+      org.quartz.scheduler.instanceId: AUTO
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8180/realms/taskmaster-app
+
+server:
+  port: 8084
+
+services:
+  task-service:
+    url: http://task-service
+  notification-service:
+    url: http://notification-service
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs

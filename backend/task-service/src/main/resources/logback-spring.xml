@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="SERVICE_NAME" source="spring.application.name" defaultValue="task-service"/>
+    <springProperty scope="context" name="SERVICE_VERSION" source="spring.application.version" defaultValue="1.0.0"/>
+    <springProperty scope="context" name="LOGSTASH_HOST" source="logstash.host" defaultValue="logstash"/>
+    <springProperty scope="context" name="LOGSTASH_PORT" source="logstash.port" defaultValue="5000"/>
+
+    <!-- Console appender (human readable in dev) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service_name":"${SERVICE_NAME}","service_version":"${SERVICE_VERSION}"}</customFields>
+            <includeCallerData>false</includeCallerData>
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <version>[ignore]</version>
+            </fieldNames>
+        </encoder>
+    </appender>
+
+    <!-- Logstash TCP appender for ELK -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service_name":"${SERVICE_NAME}","service_version":"${SERVICE_VERSION}"}</customFields>
+        </encoder>
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+        <reconnectionDelay>10 second</reconnectionDelay>
+    </appender>
+
+    <!-- Async wrapper for Logstash to avoid blocking -->
+    <appender name="ASYNC_LOGSTASH" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="LOGSTASH"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+
+    <springProfile name="local,dev">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_LOGSTASH"/>
+        </root>
+        <logger name="com.taskmaster" level="DEBUG"/>
+    </springProfile>
+
+    <springProfile name="stage,prod">
+        <root level="INFO">
+            <appender-ref ref="ASYNC_LOGSTASH"/>
+        </root>
+    </springProfile>
+</configuration>

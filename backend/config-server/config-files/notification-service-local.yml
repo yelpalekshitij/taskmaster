@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/taskmanager_notifications
+  kafka:
+    bootstrap-servers: kafka:9092
+  mail:
+    host: mailhog
+    port: 1025
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8180/realms/taskmaster-app

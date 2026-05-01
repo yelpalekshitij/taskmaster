@@ -1,0 +1,454 @@
+version: '3.9'
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  networks:
+    - taskmaster-network
+
+x-spring-boot-defaults: &spring-boot-defaults
+  <<: *service-defaults
+  environment:
+    SPRING_PROFILES_ACTIVE: local
+    JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+networks:
+  taskmaster-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  elasticsearch-data:
+  keycloak-data:
+  grafana-data:
+  prometheus-data:
+
+services:
+
+  # ============================================================
+  # INFRASTRUCTURE
+  # ============================================================
+
+  postgres:
+    <<: *service-defaults
+    image: postgres:17-alpine
+    container_name: taskmaster-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secret
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    <<: *service-defaults
+    image: redis:7-alpine
+    container_name: taskmaster-redis
+    command: redis-server --requirepass redis_secret --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis_secret", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    <<: *service-defaults
+    image: quay.io/keycloak/keycloak:26.1
+    container_name: taskmaster-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: dev-mem
+      KC_HTTP_PORT: 8180
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-placeholder}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-placeholder}
+      KEYCLOAK_BACKEND_SECRET: ${KEYCLOAK_BACKEND_SECRET:-backend_secret_change_in_prod}
+    volumes:
+      - ./infrastructure/keycloak:/opt/keycloak/data/import
+    ports:
+      - "8180:8180"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8180/realms/master || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  mailhog:
+    <<: *service-defaults
+    image: mailhog/mailhog:v1.0.1
+    container_name: taskmaster-mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ============================================================
+  # KAFKA (KRaft mode — no ZooKeeper)
+  # ============================================================
+
+  kafka:
+    <<: *service-defaults
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: taskmaster-kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: 168
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  kafka-init:
+    <<: *service-defaults
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: taskmaster-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: >
+      bash -c "
+        echo 'Creating Kafka topics...'
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic notification-events --partitions 6 --replication-factor 1 --config retention.ms=604800000 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic notification-events.DLT --partitions 1 --replication-factor 1 --config retention.ms=2592000000 &&
+        echo 'Topics created.'
+      "
+    restart: "no"
+
+  kafka-ui:
+    <<: *service-defaults
+    image: provectuslabs/kafka-ui:latest
+    container_name: taskmaster-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: taskmaster-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "9091:8080"
+
+  # ============================================================
+  # OBSERVABILITY — ELK
+  # ============================================================
+
+  elasticsearch:
+    <<: *service-defaults
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: taskmaster-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  logstash:
+    <<: *service-defaults
+    image: docker.elastic.co/logstash/logstash:8.15.0
+    container_name: taskmaster-logstash
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./infrastructure/logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "5000:5000/tcp"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+
+  kibana:
+    <<: *service-defaults
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: taskmaster-kibana
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+    ports:
+      - "5601:5601"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ============================================================
+  # OBSERVABILITY — METRICS
+  # ============================================================
+
+  prometheus:
+    <<: *service-defaults
+    image: prom/prometheus:v2.54.0
+    container_name: taskmaster-prometheus
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+
+  grafana:
+    <<: *service-defaults
+    image: grafana/grafana:11.2.0
+    container_name: taskmaster-grafana
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - "3000:3000"
+
+  # ============================================================
+  # OBSERVABILITY — DISTRIBUTED TRACING
+  # ============================================================
+
+  zipkin:
+    <<: *service-defaults
+    image: openzipkin/zipkin:3.4
+    container_name: taskmaster-zipkin
+    ports:
+      - "9411:9411"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9411/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # APPLICATION SERVICES
+  # ============================================================
+
+  service-registry:
+    <<: *spring-boot-defaults
+    build:
+      context: .
+      dockerfile: backend/service-registry/Dockerfile
+    container_name: taskmaster-service-registry
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  config-server:
+    <<: *spring-boot-defaults
+    build:
+      context: .
+      dockerfile: backend/config-server/Dockerfile
+    container_name: taskmaster-config-server
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8888/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  api-gateway:
+    <<: *spring-boot-defaults
+    build:
+      context: .
+      dockerfile: backend/api-gateway/Dockerfile
+    container_name: taskmaster-api-gateway
+    depends_on:
+      config-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  user-service:
+    <<: *spring-boot-defaults
+    build:
+      context: .
+      dockerfile: backend/user-service/Dockerfile
+    container_name: taskmaster-user-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  task-service:
+    <<: *spring-boot-defaults
+    build:
+      context: .
+      dockerfile: backend/task-service/Dockerfile
+    container_name: taskmaster-task-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  notification-service:
+    <<: *spring-boot-defaults
+    build:
+      context: .
+      dockerfile: backend/notification-service/Dockerfile
+    container_name: taskmaster-notification-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      mailhog:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      FCM_SERVICE_ACCOUNT_KEY: ${FCM_SERVICE_ACCOUNT_KEY:-}
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  scheduler-service:
+    <<: *spring-boot-defaults
+    build:
+      context: .
+      dockerfile: backend/scheduler-service/Dockerfile
+    container_name: taskmaster-scheduler-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  admin-server:
+    <<: *spring-boot-defaults
+    build:
+      context: .
+      dockerfile: backend/admin-server/Dockerfile
+    container_name: taskmaster-admin-server
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    ports:
+      - "8090:8090"
+
+  user-frontend:
+    <<: *service-defaults
+    build:
+      context: frontend/user-frontend
+      dockerfile: Dockerfile
+    container_name: taskmaster-user-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+
+  admin-frontend:
+    <<: *service-defaults
+    build:
+      context: frontend/admin-frontend
+      dockerfile: Dockerfile
+    container_name: taskmaster-admin-frontend
+    ports:
+      - "4201:80"
+    depends_on:
+      - api-gateway

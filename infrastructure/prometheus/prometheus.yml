@@ -1,0 +1,40 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'taskmaster'
+
+scrape_configs:
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'api-gateway'
+
+  - job_name: 'user-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['user-service:8081']
+
+  - job_name: 'task-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['task-service:8082']
+
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:8083']
+
+  - job_name: 'scheduler-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['scheduler-service:8084']
+
+  - job_name: 'service-registry'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['service-registry:8761']

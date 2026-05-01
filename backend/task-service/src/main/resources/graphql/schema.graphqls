@@ -1,0 +1,85 @@
+type Query {
+  tasks(filter: TaskFilter, page: Int, size: Int): TaskPage!
+  task(id: ID!): Task
+  myTasks(page: Int, size: Int): TaskPage!
+}
+
+type Mutation {
+  createTask(input: CreateTaskInput!): Task!
+  updateTask(id: ID!, input: UpdateTaskInput!): Task!
+  deleteTask(id: ID!): Boolean!
+  updateTaskStatus(id: ID!, status: TaskStatus!): Task!
+  assignTask(id: ID!, userId: ID!): Task!
+  addComment(taskId: ID!, content: String!): TaskComment!
+}
+
+type Task {
+  id: ID!
+  title: String!
+  description: String
+  status: TaskStatus!
+  priority: TaskPriority!
+  dueDate: String
+  scheduledDate: String
+  tenantId: ID!
+  assignedTo: ID
+  createdBy: ID!
+  tags: [String!]!
+  comments: [TaskComment!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type TaskComment {
+  id: ID!
+  taskId: ID!
+  userId: ID!
+  content: String!
+  createdAt: String!
+}
+
+type TaskPage {
+  content: [Task!]!
+  totalElements: Int!
+  totalPages: Int!
+  pageNumber: Int!
+  pageSize: Int!
+}
+
+input CreateTaskInput {
+  title: String!
+  description: String
+  priority: TaskPriority
+  dueDate: String
+  assignedTo: ID
+  tags: [String!]
+}
+
+input UpdateTaskInput {
+  title: String
+  description: String
+  priority: TaskPriority
+  dueDate: String
+  tags: [String!]
+}
+
+input TaskFilter {
+  status: TaskStatus
+  priority: TaskPriority
+  assignedTo: ID
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  ON_HOLD
+  DONE
+  SCHEDULED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

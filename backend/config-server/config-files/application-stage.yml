@@ -1,0 +1,4 @@
+# STAGING environment placeholder
+# Override with actual staging infrastructure values
+logging.level.com.taskmaster: INFO
+management.endpoints.web.exposure.include: health,info,prometheus

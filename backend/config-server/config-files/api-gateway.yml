@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8180/realms/taskmaster-app/protocol/openid-connect/certs
+
+server:
+  port: 8080
+
+keycloak:
+  realms:
+    admin:
+      issuer-uri: http://keycloak:8180/realms/taskmaster-admin
+      jwk-set-uri: http://keycloak:8180/realms/taskmaster-admin/protocol/openid-connect/certs
+    app:
+      issuer-uri: http://keycloak:8180/realms/taskmaster-app
+      jwk-set-uri: http://keycloak:8180/realms/taskmaster-app/protocol/openid-connect/certs
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: user-service
+        url: /v3/api-docs/user-service
+      - name: task-service
+        url: /v3/api-docs/task-service
+      - name: notification-service
+        url: /v3/api-docs/notification-service
+      - name: scheduler-service
+        url: /v3/api-docs/scheduler-service

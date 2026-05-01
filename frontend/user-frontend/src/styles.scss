@@ -1,0 +1,144 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$primary-palette: mat.define-palette(mat.$azure-palette, 700);
+$accent-palette: mat.define-palette(mat.$blue-palette, 500);
+$warn-palette: mat.define-palette(mat.$red-palette);
+
+$theme: mat.define-light-theme((
+  color: (
+    primary: $primary-palette,
+    accent: $accent-palette,
+    warn: $warn-palette,
+  ),
+  typography: mat.define-typography-config(),
+  density: 0,
+));
+
+@include mat.all-component-themes($theme);
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: #f5f5f5;
+}
+
+.page-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.mat-elevation-z2 {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.error-container {
+  padding: 16px;
+  background-color: #ffebee;
+  border-radius: 4px;
+  color: #c62828;
+  margin: 16px 0;
+}
+
+.chip-status-todo {
+  background-color: #e3f2fd !important;
+  color: #1565c0 !important;
+}
+
+.chip-status-in-progress {
+  background-color: #fff3e0 !important;
+  color: #e65100 !important;
+}
+
+.chip-status-on-hold {
+  background-color: #f3e5f5 !important;
+  color: #6a1b9a !important;
+}
+
+.chip-status-done {
+  background-color: #e8f5e9 !important;
+  color: #2e7d32 !important;
+}
+
+.priority-high {
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+.priority-medium {
+  color: #f57c00;
+  font-weight: 500;
+}
+
+.priority-low {
+  color: #388e3c;
+  font-weight: 500;
+}
+
+.kanban-board {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  min-height: calc(100vh - 200px);
+}
+
+.kanban-column {
+  min-width: 280px;
+  flex: 1;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.kanban-column-header {
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 4px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kanban-task-card {
+  margin-bottom: 8px;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 4px;
+  box-shadow: 0 5px 5px -3px rgba(0,0,0,.2),
+              0 8px 10px 1px rgba(0,0,0,.14),
+              0 3px 14px 2px rgba(0,0,0,.12);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .kanban-task-card:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

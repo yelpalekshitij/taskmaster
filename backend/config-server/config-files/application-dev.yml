@@ -1,0 +1,3 @@
+# DEV environment placeholder
+# Override with actual dev infrastructure values
+logging.level.com.taskmaster: DEBUG

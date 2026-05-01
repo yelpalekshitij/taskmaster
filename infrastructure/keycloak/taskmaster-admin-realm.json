@@ -1,0 +1,122 @@
+{
+  "realm": "taskmaster-admin",
+  "displayName": "TaskMaster Admin",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "accessTokenLifespan": 3600,
+  "refreshTokenMaxReuse": 0,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "MASTER_ADMIN",
+        "description": "Master administrator with cross-tenant access"
+      },
+      {
+        "name": "TENANT_ADMIN",
+        "description": "Tenant administrator with tenant-scoped access"
+      }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "taskmaster-admin-frontend",
+      "name": "TaskMaster Admin Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:4201/*",
+        "http://admin-frontend:4201/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4201",
+        "http://admin-frontend:4201"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "taskmaster-backend",
+      "name": "TaskMaster Backend Service",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${KEYCLOAK_BACKEND_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    }
+  ],
+
+  "protocolMappers": [],
+
+  "clientScopes": [
+    {
+      "name": "taskmaster-admin",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "tenant-id-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "tenant_id",
+            "claim.name": "tenant_id",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+
+  "identityProviders": [
+    {
+      "alias": "google",
+      "displayName": "Google",
+      "providerId": "google",
+      "enabled": true,
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+        "defaultScope": "openid email profile",
+        "syncMode": "IMPORT"
+      }
+    }
+  ],
+
+  "users": [
+    {
+      "username": "master-admin",
+      "email": "master@taskmaster.local",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Master",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin@123!",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["MASTER_ADMIN"],
+      "attributes": {
+        "tenant_id": [""]
+      }
+    }
+  ]
+}
