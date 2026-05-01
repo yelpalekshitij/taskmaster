@@ -85,7 +85,7 @@ class TaskSpecificationTest {
             assignedTo = assignedTo.toString()
         )
 
-        every { root.get<Any>(any()) } returns path
+        every { root.get<Any>(any<String>()) } returns path
         every { cb.equal(any(), any()) } returns predicate
         every { cb.and(*anyVararg()) } returns predicate
 

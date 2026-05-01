@@ -6,13 +6,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserAdminService } from '../../core/services/user-admin.service';
 import { Role } from '../../core/models/admin.model';
 
@@ -34,6 +35,7 @@ import { Role } from '../../core/models/admin.model';
     MatDividerModule,
     MatSnackBarModule,
     MatExpansionModule,
+    MatTooltipModule,
   ],
   template: `
     <div class="page-container">
@@ -100,7 +102,7 @@ import { Role } from '../../core/models/admin.model';
           <mat-card-content>
             <div class="permissions-section">
               <p class="permissions-label">Permissions:</p>
-              <div class="permissions-chips" *ngIf="role.permissions?.length > 0">
+              <div class="permissions-chips" *ngIf="(role.permissions?.length ?? 0) > 0">
                 <mat-chip *ngFor="let perm of role.permissions" class="permission-chip">
                   {{ perm }}
                 </mat-chip>
@@ -217,9 +219,9 @@ import { Role } from '../../core/models/admin.model';
   `]
 })
 export class RoleListComponent implements OnInit {
-  private userAdminService = inject(UserAdminService);
-  private fb = inject(FormBuilder);
-  private snackBar = inject(MatSnackBar);
+  private readonly userAdminService = inject(UserAdminService);
+  private readonly fb = inject(FormBuilder);
+  private readonly snackBar = inject(MatSnackBar);
 
   roles: Role[] = [];
   loading = false;
@@ -261,7 +263,7 @@ export class RoleListComponent implements OnInit {
     this.creating = true;
     const values = this.createForm.value;
     const permissions = values.permissionsInput
-      ? values.permissionsInput.split(',').map((p: string) => p.trim()).filter((p: string) => p)
+      ? values.permissionsInput.split(',').map((p: string) => p.trim()).filter(Boolean)
       : [];
 
     const role: Partial<Role> = {
