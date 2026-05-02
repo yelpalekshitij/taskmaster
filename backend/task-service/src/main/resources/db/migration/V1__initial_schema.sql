@@ -1,12 +1,11 @@
-CREATE TYPE task_status AS ENUM ('TODO', 'IN_PROGRESS', 'ON_HOLD', 'DONE', 'SCHEDULED');
-CREATE TYPE task_priority AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
-
 CREATE TABLE tasks (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title           VARCHAR(500) NOT NULL,
     description     TEXT,
-    status          task_status NOT NULL DEFAULT 'TODO',
-    priority        task_priority NOT NULL DEFAULT 'MEDIUM',
+    status          VARCHAR(20) NOT NULL DEFAULT 'TODO'
+                        CHECK (status IN ('TODO', 'IN_PROGRESS', 'ON_HOLD', 'DONE', 'SCHEDULED')),
+    priority        VARCHAR(20) NOT NULL DEFAULT 'MEDIUM'
+                        CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
     due_date        TIMESTAMP WITH TIME ZONE,
     scheduled_date  TIMESTAMP WITH TIME ZONE,
     tenant_id       UUID NOT NULL,
@@ -34,8 +33,8 @@ CREATE TABLE task_history (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     task_id    UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     changed_by UUID NOT NULL,
-    old_status task_status,
-    new_status task_status NOT NULL,
+    old_status VARCHAR(20) CHECK (old_status IN ('TODO', 'IN_PROGRESS', 'ON_HOLD', 'DONE', 'SCHEDULED')),
+    new_status VARCHAR(20) NOT NULL CHECK (new_status IN ('TODO', 'IN_PROGRESS', 'ON_HOLD', 'DONE', 'SCHEDULED')),
     comment    TEXT,
     changed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -45,7 +44,7 @@ CREATE TABLE outbox_events (
     aggregate_type   VARCHAR(100) NOT NULL DEFAULT 'TASK',
     aggregate_id     UUID NOT NULL,
     event_type       VARCHAR(100) NOT NULL,
-    payload          JSONB NOT NULL,
+    payload          TEXT NOT NULL,
     idempotency_key  VARCHAR(255) UNIQUE NOT NULL,
     created_at       TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     published_at     TIMESTAMP WITH TIME ZONE,

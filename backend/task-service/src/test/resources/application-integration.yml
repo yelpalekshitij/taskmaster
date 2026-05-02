@@ -1,0 +1,32 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    config:
+      enabled: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    listener:
+      auto-startup: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+eureka:
+  client:
+    enabled: false
+
+spring-boot-admin:
+  client:
+    enabled: false
+
+management:
+  tracing:
+    enabled: false
+
+outbox:
+  relay:
+    interval-ms: 3600000
+    batch-size: 50
+

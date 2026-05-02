@@ -3,7 +3,7 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideAuth, LogLevel, OidcSecurityService } from 'angular-auth-oidc-client';
-import { provideApollo, APOLLO_NAMED_OPTIONS, Apollo } from 'apollo-angular';
+import { provideApollo, APOLLO_NAMED_OPTIONS } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { InMemoryCache } from '@apollo/client/core';
 import { provideStore } from '@ngrx/store';
