@@ -230,8 +230,6 @@ export class AppComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.oidcService.checkAuth().subscribe();
-
     this.isAuthenticated$ = this.oidcService.isAuthenticated$.pipe(
       map(auth => auth.isAuthenticated)
     );
@@ -240,18 +238,28 @@ export class AppComponent implements OnInit {
       map(userData => userData?.email || userData?.preferred_username || '')
     );
 
-    this.userRole$ = this.oidcService.getUserData().pipe(
-      map(userData => {
-        const roles: string[] = userData?.realm_access?.roles || [];
+    this.userRole$ = this.oidcService.getAccessToken().pipe(
+      map(token => {
+        const roles = this.parseRolesFromToken(token);
         if (roles.includes('MASTER_ADMIN')) return 'Master Admin';
         if (roles.includes('TENANT_ADMIN')) return 'Tenant Admin';
         return 'Admin';
       })
     );
 
-    this.oidcService.getUserData().subscribe(userData => {
-      this.userRoles = userData?.realm_access?.roles || [];
+    this.oidcService.getAccessToken().subscribe(token => {
+      this.userRoles = this.parseRolesFromToken(token);
     });
+  }
+
+  private parseRolesFromToken(token: string): string[] {
+    if (!token) return [];
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return payload?.realm_access?.roles || [];
+    } catch {
+      return [];
+    }
   }
 
   getVisibleNavItems(): NavItem[] {

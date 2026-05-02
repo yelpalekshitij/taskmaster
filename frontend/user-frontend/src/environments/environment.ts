@@ -7,7 +7,7 @@ export const environment = {
     redirectUrl: 'http://localhost:4200/callback',
     postLogoutRedirectUri: 'http://localhost:4200/login',
     clientId: 'taskmaster-user-frontend',
-    scope: 'openid profile email offline_access',
+    scope: 'openid profile email',
     responseType: 'code',
     silentRenew: true,
     useRefreshToken: true,

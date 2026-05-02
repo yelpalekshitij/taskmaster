@@ -3,11 +3,11 @@ export const environment = {
   apiUrl: '/api',
   graphqlUrl: '/graphql',
   keycloak: {
-    authority: 'http://keycloak:8180/realms/taskmaster-app',
+    authority: 'http://localhost:8180/realms/taskmaster-app',
     redirectUrl: window.location.origin + '/callback',
     postLogoutRedirectUri: window.location.origin + '/login',
     clientId: 'taskmaster-user-frontend',
-    scope: 'openid profile email offline_access',
+    scope: 'openid profile email',
     responseType: 'code',
     silentRenew: true,
     useRefreshToken: true,

@@ -154,8 +154,6 @@ export class AppComponent implements OnInit {
   unreadCount = 0;
 
   ngOnInit(): void {
-    this.oidcService.checkAuth().subscribe();
-
     this.isAuthenticated$ = this.oidcService.isAuthenticated$.pipe(
       map(auth => auth.isAuthenticated)
     );
