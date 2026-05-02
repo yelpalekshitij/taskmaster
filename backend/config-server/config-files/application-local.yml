@@ -4,6 +4,13 @@ eureka:
   client:
     service-url:
       defaultZone: http://eureka:eureka_secret@service-registry:8761/eureka/
+  instance:
+    # homePageUrl uses localhost so the link in SBA's Applications tab is clickable from the host browser.
+    # management.url in metadata tells SBA to fetch actuator data via the Docker-internal hostname instead,
+    # since the SBA container resolves service names over the Docker network, not localhost.
+    homePageUrl: http://localhost:${server.port}/
+    metadata-map:
+      management.url: http://${spring.application.name}:${server.port}/actuator
 
 spring:
   # Disable SBA direct-registration from services; Eureka discovery handles it

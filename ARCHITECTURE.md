@@ -1181,13 +1181,21 @@ Spring Boot Admin discovers all registered services via Eureka and presents a un
 
 ### How It Works
 
-Each service registers itself with the SBA server by sending its actuator base URL to `http://spring-boot-admin-server:8090/admin/instances`. The SBA server then polls each endpoint listed in the table above.
+SBA discovers services via **Eureka** — no direct `spring-boot-admin-starter-client` registration is used (that mechanism is disabled with `spring.boot.admin.client.enabled: false` in `application-local.yml`). On each discovery refresh, SBA fetches the service's actuator root (`GET /actuator`) to build the list of available endpoints, then polls each one.
 
-Registration is automatic — no manual configuration needed per service. The `spring-boot-admin-starter-client` dependency handles it.
+For Eureka hostname stability, all Spring Boot services set `eureka.instance.prefer-ip-address: false` (in `config-server/config-files/application.yml`) and declare `hostname:` in `docker-compose.yml`. This ensures Eureka registers stable service-name hostnames (e.g. `task-service`) rather than ephemeral container IPs that change on restart.
+
+Each service registers with two distinct URLs (configured in `config-server/config-files/application-local.yml`):
+- `eureka.instance.homePageUrl: http://localhost:${server.port}/` — the link shown in SBA's Applications tab; uses `localhost` so it is clickable from the host browser via Docker port mapping.
+- `eureka.instance.metadata-map.management.url: http://${spring.application.name}:${server.port}/actuator` — the URL SBA uses internally to fetch actuator data; uses the Docker service-name hostname so SBA can reach it from within the Docker network.
+
+> **SBA Applications tab navigation**: clicking on the **service URL** link in an instance row navigates to the service itself (its home page). To open the SBA monitoring detail page for an instance (`/instances/{id}/details`), click on the **instance status indicator** (colored dot) or instance name, not the URL.
+
+> **Classpath priority gotcha:** Spring Boot 2.4+ gives classpath files *higher* priority than config-server imports. If a service's own `application.yml` or `application-local.yml` sets `eureka.instance.prefer-ip-address` or `management.endpoints.web.exposure.include`, it will silently override the config-server values. The three services task-service, notification-service, and scheduler-service had this issue; the conflicting keys were removed from their classpath files so config-server is now the single source of truth for these cross-cutting settings.
 
 ### Actuator Security
 
-All services expose actuator endpoints via Spring Security's resource server (JWT-required). SBA's client-side registration metadata includes the actuator URL; the SBA server queries them without needing a JWT because it reaches services over the internal Docker network where services aren't exposing actuator through the API Gateway.
+All services permit `/actuator/**` without authentication (configured in each service's `SecurityConfig`). SBA reaches services directly over the internal Docker network, not through the API Gateway, so no JWT is needed. Actuator endpoints are never routed through the gateway.
 
 > **Note:** In production, restrict actuator exposure to `health` and `prometheus` only (already set in `application-prod.yml`). The full endpoint set is safe for `local`, `dev`, and optionally `stage`.
 

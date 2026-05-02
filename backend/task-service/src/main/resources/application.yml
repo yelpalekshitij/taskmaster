@@ -65,19 +65,7 @@ keycloak:
 server:
   port: 8082
 
-eureka:
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus,metrics
-  endpoint:
-    health:
-      show-details: when_authorized
   tracing:
     sampling:
       probability: 1.0
@@ -88,12 +76,6 @@ management:
     metrics:
       export:
         enabled: true
-
-spring-boot-admin:
-  client:
-    url: http://spring-boot-admin-server:9090
-    instance:
-      service-base-url: http://task-service:8082
 
 outbox:
   relay:
