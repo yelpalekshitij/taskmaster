@@ -10,7 +10,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap, filter } from 'rxjs/operators';
+import { NotificationService } from './core/services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -30,10 +31,10 @@ import { map } from 'rxjs/operators';
   ],
   template: `
     <mat-toolbar color="primary" class="app-toolbar">
-      <span class="app-title">
+      <a class="app-title" routerLink="/dashboard">
         <mat-icon>task_alt</mat-icon>
         TaskMaster
-      </span>
+      </a>
 
       <nav class="nav-links" *ngIf="isAuthenticated$ | async">
         <a mat-button routerLink="/dashboard" routerLinkActive="active-link">
@@ -103,6 +104,9 @@ import { map } from 'rxjs/operators';
       font-size: 20px;
       font-weight: 600;
       margin-right: 24px;
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
     }
 
     .nav-links {
@@ -148,6 +152,7 @@ import { map } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
   private readonly oidcService = inject(OidcSecurityService);
+  private readonly notificationService = inject(NotificationService);
 
   isAuthenticated$!: Observable<boolean>;
   userEmail$!: Observable<string>;
@@ -161,6 +166,11 @@ export class AppComponent implements OnInit {
     this.userEmail$ = this.oidcService.getUserData().pipe(
       map(userData => userData?.email || userData?.preferred_username || '')
     );
+
+    this.oidcService.isAuthenticated$.pipe(
+      filter(auth => auth.isAuthenticated),
+      switchMap(() => this.notificationService.getUnreadCount())
+    ).subscribe({ next: (count) => this.unreadCount = count, error: () => {} });
   }
 
   logout(): void {

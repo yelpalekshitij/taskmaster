@@ -2,6 +2,7 @@ export const environment = {
   production: true,
   apiUrl: '/api',
   graphqlUrl: '/graphql',
+  notificationGraphqlUrl: '/notification-graphql',
   keycloak: {
     authority: 'http://localhost:8180/realms/taskmaster-app',
     redirectUrl: window.location.origin + '/callback',

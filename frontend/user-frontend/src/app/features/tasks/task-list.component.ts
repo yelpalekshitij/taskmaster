@@ -133,8 +133,8 @@ import { TaskFormDialogComponent } from './task-form-dialog.component';
           <ng-container matColumnDef="assignee">
             <th mat-header-cell *matHeaderCellDef>Assignee</th>
             <td mat-cell *matCellDef="let task">
-              <span *ngIf="task.assignee">{{ task.assignee.firstName || task.assignee.username }}</span>
-              <span *ngIf="!task.assignee" class="unassigned">Unassigned</span>
+              <span *ngIf="task.assignedTo">{{ task.assignedTo }}</span>
+              <span *ngIf="!task.assignedTo" class="unassigned">Unassigned</span>
             </td>
           </ng-container>
 

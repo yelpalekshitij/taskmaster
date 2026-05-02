@@ -52,6 +52,7 @@ export class StatusBadgeComponent {
       'IN_PROGRESS': 'In Progress',
       'ON_HOLD': 'On Hold',
       'DONE': 'Done',
+      'SCHEDULED': 'Scheduled',
     };
     return labels[this.status] || this.status;
   }
@@ -62,6 +63,7 @@ export class StatusBadgeComponent {
       'IN_PROGRESS': 'badge-in-progress',
       'ON_HOLD': 'badge-on-hold',
       'DONE': 'badge-done',
+      'SCHEDULED': 'badge-todo',
     };
     return classes[this.status] || '';
   }

@@ -1,4 +1,4 @@
-export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'ON_HOLD' | 'DONE';
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'ON_HOLD' | 'DONE' | 'SCHEDULED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export interface Task {
@@ -7,8 +7,8 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
-  assignee?: TaskUser;
-  createdBy: TaskUser;
+  assignedTo?: string;
+  createdBy: string;
   dueDate?: string;
   createdAt: string;
   updatedAt: string;
@@ -17,18 +17,10 @@ export interface Task {
   comments?: TaskComment[];
 }
 
-export interface TaskUser {
-  id: string;
-  username: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-}
-
 export interface TaskComment {
   id: string;
   content: string;
-  author: TaskUser;
+  userId: string;
   createdAt: string;
 }
 

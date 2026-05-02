@@ -7,8 +7,7 @@ export interface Notification {
   message: string;
   read: boolean;
   createdAt: string;
-  taskId?: string;
-  actorName?: string;
+  referenceId?: string;
 }
 
 export interface NotificationPage {

@@ -36,10 +36,19 @@ class GatewayRoutesConfig {
         }
 
         // -------------------------------------------------------
-        // Notification Service
+        // Notification Service — REST endpoints
         // -------------------------------------------------------
         .route("notification-service") { r ->
             r.path("/api/v1/notifications/**")
+                .uri("lb://notification-service")
+        }
+
+        // -------------------------------------------------------
+        // Notification Service — GraphQL
+        // -------------------------------------------------------
+        .route("notification-service-graphql") { r ->
+            r.path("/notification-graphql", "/notification-graphiql")
+                .filters { f -> f.rewritePath("/notification-(?<segment>.*)", "/\${segment}") }
                 .uri("lb://notification-service")
         }
 

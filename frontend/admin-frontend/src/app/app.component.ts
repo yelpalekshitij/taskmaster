@@ -41,13 +41,13 @@ interface NavItem {
     <mat-sidenav-container class="sidenav-container">
       <!-- Sidebar -->
       <mat-sidenav mode="side" opened class="sidenav" *ngIf="isAuthenticated$ | async">
-        <div class="sidenav-header">
+        <a class="sidenav-header" routerLink="/dashboard">
           <mat-icon class="logo-icon">admin_panel_settings</mat-icon>
           <div>
             <div class="app-name">TaskMaster</div>
             <div class="app-subtitle">Admin Console</div>
           </div>
-        </div>
+        </a>
 
         <mat-divider></mat-divider>
 
@@ -110,6 +110,9 @@ interface NavItem {
       align-items: center;
       gap: 12px;
       padding: 20px 16px;
+      text-decoration: none;
+      color: white;
+      cursor: pointer;
 
       .logo-icon {
         font-size: 36px;

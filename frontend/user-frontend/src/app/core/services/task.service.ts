@@ -13,7 +13,7 @@ import {
 } from '../models/task.model';
 
 const GET_TASKS = gql`
-  query GetTasks($filter: TaskFilterInput, $page: Int, $size: Int) {
+  query GetTasks($filter: TaskFilter, $page: Int, $size: Int) {
     tasks(filter: $filter, page: $page, size: $size) {
       content {
         id
@@ -24,18 +24,8 @@ const GET_TASKS = gql`
         dueDate
         createdAt
         updatedAt
-        assignee {
-          id
-          username
-          email
-          firstName
-          lastName
-        }
-        createdBy {
-          id
-          username
-          email
-        }
+        assignedTo
+        createdBy
         tags
       }
       totalElements
@@ -47,8 +37,8 @@ const GET_TASKS = gql`
 `;
 
 const GET_MY_TASKS = gql`
-  query GetMyTasks($status: TaskStatus, $page: Int, $size: Int) {
-    myTasks(status: $status, page: $page, size: $size) {
+  query GetMyTasks($page: Int, $size: Int) {
+    myTasks(page: $page, size: $size) {
       content {
         id
         title
@@ -58,16 +48,8 @@ const GET_MY_TASKS = gql`
         dueDate
         createdAt
         updatedAt
-        assignee {
-          id
-          username
-          email
-        }
-        createdBy {
-          id
-          username
-          email
-        }
+        assignedTo
+        createdBy
         tags
       }
       totalElements
@@ -89,28 +71,14 @@ const GET_TASK = gql`
       dueDate
       createdAt
       updatedAt
-      assignee {
-        id
-        username
-        email
-        firstName
-        lastName
-      }
-      createdBy {
-        id
-        username
-        email
-      }
+      assignedTo
+      createdBy
       tags
       comments {
         id
         content
         createdAt
-        author {
-          id
-          username
-          email
-        }
+        userId
       }
     }
   }
@@ -126,23 +94,15 @@ const CREATE_TASK = gql`
       priority
       dueDate
       createdAt
-      assignee {
-        id
-        username
-        email
-      }
-      createdBy {
-        id
-        username
-        email
-      }
+      assignedTo
+      createdBy
     }
   }
 `;
 
 const UPDATE_TASK_STATUS = gql`
-  mutation UpdateTaskStatus($input: UpdateTaskStatusInput!) {
-    updateTaskStatus(input: $input) {
+  mutation UpdateTaskStatus($id: ID!, $status: TaskStatus!) {
+    updateTaskStatus(id: $id, status: $status) {
       id
       status
       updatedAt
@@ -151,29 +111,21 @@ const UPDATE_TASK_STATUS = gql`
 `;
 
 const ASSIGN_TASK = gql`
-  mutation AssignTask($input: AssignTaskInput!) {
-    assignTask(input: $input) {
+  mutation AssignTask($id: ID!, $userId: ID!) {
+    assignTask(id: $id, userId: $userId) {
       id
-      assignee {
-        id
-        username
-        email
-      }
+      assignedTo
     }
   }
 `;
 
 const ADD_COMMENT = gql`
-  mutation AddComment($input: AddCommentInput!) {
-    addComment(input: $input) {
+  mutation AddComment($taskId: ID!, $content: String!) {
+    addComment(taskId: $taskId, content: $content) {
       id
       content
       createdAt
-      author {
-        id
-        username
-        email
-      }
+      userId
     }
   }
 `;
@@ -186,7 +138,7 @@ export class TaskService {
     return this.apollo.watchQuery<{ tasks: TaskPage }>({
       query: GET_TASKS,
       variables: {
-        filter: filter ? { status: filter.status, priority: filter.priority, assigneeId: filter.assigneeId } : null,
+        filter: filter ? { status: filter.status, priority: filter.priority, assignedTo: filter.assigneeId } : null,
         page: filter?.page ?? 0,
         size: filter?.size ?? 20,
       }
@@ -198,7 +150,7 @@ export class TaskService {
   getMyTasks(status?: string, page = 0, size = 20): Observable<TaskPage> {
     return this.apollo.watchQuery<{ myTasks: TaskPage }>({
       query: GET_MY_TASKS,
-      variables: { status, page, size }
+      variables: { page, size }
     }).valueChanges.pipe(
       map(result => result.data.myTasks)
     );
@@ -226,7 +178,7 @@ export class TaskService {
   updateTaskStatus(input: UpdateTaskStatusInput): Observable<Partial<Task>> {
     return this.apollo.mutate<{ updateTaskStatus: Partial<Task> }>({
       mutation: UPDATE_TASK_STATUS,
-      variables: { input }
+      variables: { id: input.taskId, status: input.status }
     }).pipe(
       map(result => result.data!.updateTaskStatus)
     );
@@ -235,7 +187,7 @@ export class TaskService {
   assignTask(input: AssignTaskInput): Observable<Partial<Task>> {
     return this.apollo.mutate<{ assignTask: Partial<Task> }>({
       mutation: ASSIGN_TASK,
-      variables: { input }
+      variables: { id: input.taskId, userId: input.assigneeId }
     }).pipe(
       map(result => result.data!.assignTask)
     );
@@ -244,7 +196,7 @@ export class TaskService {
   addComment(input: AddCommentInput): Observable<any> {
     return this.apollo.mutate({
       mutation: ADD_COMMENT,
-      variables: { input }
+      variables: { taskId: input.taskId, content: input.content }
     }).pipe(
       map(result => (result.data as any).addComment)
     );

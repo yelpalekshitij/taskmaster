@@ -1,8 +1,8 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, APP_INITIALIZER } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideAuth, LogLevel } from 'angular-auth-oidc-client';
+import { provideAuth, LogLevel, OidcSecurityService } from 'angular-auth-oidc-client';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { routes } from './app.routes';
@@ -28,6 +28,12 @@ export const appConfig: ApplicationConfig = {
         secureRoutes: [environment.apiUrl],
       }
     }),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (oidc: OidcSecurityService) => () => oidc.checkAuth(),
+      deps: [OidcSecurityService],
+      multi: true,
+    },
     provideStore({}),
     provideEffects([]),
   ]

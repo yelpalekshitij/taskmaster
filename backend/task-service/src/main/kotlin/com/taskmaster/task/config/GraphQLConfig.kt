@@ -3,6 +3,7 @@ package com.taskmaster.task.config
 import graphql.GraphQLError
 import graphql.GraphqlErrorBuilder
 import graphql.schema.DataFetchingEnvironment
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
 import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter
 import org.springframework.graphql.execution.ErrorType
@@ -13,6 +14,8 @@ class GraphQLConfig
 
 @Component
 class GraphQLExceptionResolver : DataFetcherExceptionResolverAdapter() {
+
+    private val log = LoggerFactory.getLogger(GraphQLExceptionResolver::class.java)
 
     override fun resolveToSingleError(ex: Throwable, env: DataFetchingEnvironment): GraphQLError? {
         return when (ex) {
@@ -36,10 +39,13 @@ class GraphQLExceptionResolver : DataFetcherExceptionResolverAdapter() {
                 .message("Access denied")
                 .build()
 
-            else -> GraphqlErrorBuilder.newError(env)
-                .errorType(ErrorType.INTERNAL_ERROR)
-                .message("An unexpected error occurred")
-                .build()
+            else -> {
+                log.error("Unhandled GraphQL exception in field '${env.field.name}'", ex)
+                GraphqlErrorBuilder.newError(env)
+                    .errorType(ErrorType.INTERNAL_ERROR)
+                    .message("An unexpected error occurred")
+                    .build()
+            }
         }
     }
 }

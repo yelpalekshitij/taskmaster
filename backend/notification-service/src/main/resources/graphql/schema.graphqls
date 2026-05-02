@@ -1,0 +1,28 @@
+type Query {
+  notifications(page: Int, size: Int): NotificationPage!
+  unreadCount: Int!
+}
+
+type Mutation {
+  markNotificationRead(id: ID!): Notification!
+  markAllNotificationsRead: Boolean!
+  deleteNotification(id: ID!): Boolean!
+}
+
+type Notification {
+  id: ID!
+  type: String!
+  title: String!
+  message: String!
+  read: Boolean!
+  createdAt: String!
+  referenceId: ID
+}
+
+type NotificationPage {
+  content: [Notification!]!
+  totalElements: Int!
+  totalPages: Int!
+  pageNumber: Int!
+  pageSize: Int!
+}

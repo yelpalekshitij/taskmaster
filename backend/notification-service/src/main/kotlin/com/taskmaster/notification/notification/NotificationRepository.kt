@@ -14,6 +14,8 @@ interface NotificationRepository : JpaRepository<Notification, UUID> {
 
     fun findByUserIdOrderByCreatedAtDesc(userId: UUID, pageable: Pageable): Page<Notification>
 
+    fun countByUserIdAndReadFalse(userId: UUID): Long
+
     @Modifying
     @Query("UPDATE Notification n SET n.read = true WHERE n.userId = :userId AND n.read = false")
     fun markAllReadByUserId(@Param("userId") userId: UUID)

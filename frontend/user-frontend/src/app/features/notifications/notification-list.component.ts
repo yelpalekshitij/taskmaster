@@ -240,7 +240,7 @@ export class NotificationListComponent implements OnInit {
 
   loadUnreadCount(): void {
     this.notificationService.getUnreadCount().subscribe({
-      next: (res) => this.unreadCount = res.count,
+      next: (count) => this.unreadCount = count,
       error: () => {}
     });
   }

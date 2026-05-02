@@ -1,9 +1,10 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, APP_INITIALIZER, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideAuth, LogLevel } from 'angular-auth-oidc-client';
-import { provideApollo } from 'apollo-angular';
+import { provideAuth, LogLevel, OidcSecurityService } from 'angular-auth-oidc-client';
+import { provideApollo, APOLLO_NAMED_OPTIONS, Apollo } from 'apollo-angular';
+import { HttpLink } from 'apollo-angular/http';
 import { InMemoryCache } from '@apollo/client/core';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
@@ -27,13 +28,32 @@ export const appConfig: ApplicationConfig = {
         silentRenew: environment.keycloak.silentRenew,
         useRefreshToken: environment.keycloak.useRefreshToken,
         logLevel: LogLevel.Warn,
-        secureRoutes: [environment.apiUrl, environment.graphqlUrl],
+        secureRoutes: [environment.apiUrl, environment.graphqlUrl, environment.notificationGraphqlUrl],
       }
     }),
-    provideApollo(() => ({
-      cache: new InMemoryCache(),
-      uri: environment.graphqlUrl,
-    })),
+    provideApollo(() => {
+      const httpLink = inject(HttpLink);
+      return {
+        cache: new InMemoryCache(),
+        link: httpLink.create({ uri: environment.graphqlUrl }),
+      };
+    }),
+    {
+      provide: APOLLO_NAMED_OPTIONS,
+      useFactory: (httpLink: HttpLink) => ({
+        notifications: {
+          cache: new InMemoryCache(),
+          link: httpLink.create({ uri: environment.notificationGraphqlUrl }),
+        },
+      }),
+      deps: [HttpLink],
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (oidc: OidcSecurityService) => () => oidc.checkAuth(),
+      deps: [OidcSecurityService],
+      multi: true,
+    },
     provideStore({}),
     provideEffects([]),
   ]

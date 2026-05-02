@@ -104,9 +104,9 @@ interface KanbanColumn {
                     <mat-icon>event</mat-icon>
                     {{ task.dueDate | date:'MMM d' }}
                   </span>
-                  <span class="assignee" *ngIf="task.assignee">
+                  <span class="assignee" *ngIf="task.assignedTo">
                     <mat-icon>person</mat-icon>
-                    {{ task.assignee.firstName || task.assignee.username }}
+                    {{ task.assignedTo }}
                   </span>
                   <span class="tag-chip" *ngFor="let tag of (task.tags || []).slice(0, 2)">
                     {{ tag }}
@@ -280,8 +280,8 @@ interface KanbanColumn {
   `]
 })
 export class KanbanBoardComponent implements OnInit {
-  private taskService = inject(TaskService);
-  private dialog = inject(MatDialog);
+  private readonly taskService = inject(TaskService);
+  private readonly dialog = inject(MatDialog);
 
   loading = false;
   error = false;

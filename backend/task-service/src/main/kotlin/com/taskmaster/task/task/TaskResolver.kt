@@ -2,7 +2,6 @@ package com.taskmaster.task.task
 
 import com.taskmaster.task.comment.TaskCommentRepository
 import com.taskmaster.task.comment.dto.TaskCommentDto
-import com.taskmaster.task.common.SecurityUtils
 import com.taskmaster.task.common.TenantContext
 import com.taskmaster.task.task.dto.CreateTaskInput
 import com.taskmaster.task.task.dto.TaskDto
@@ -14,6 +13,8 @@ import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Controller
 import java.util.UUID
 
@@ -36,8 +37,12 @@ class TaskResolver(
 
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
-    fun myTasks(@Argument page: Int?, @Argument size: Int?): TaskPage {
-        val userId = UUID.fromString(SecurityUtils.getCurrentUserId()!!)
+    fun myTasks(
+        @Argument page: Int?,
+        @Argument size: Int?,
+        @AuthenticationPrincipal jwt: Jwt
+    ): TaskPage {
+        val userId = UUID.fromString(jwt.subject)
         val tenantId = UUID.fromString(TenantContext.getRequired())
         return taskService.findByAssignee(tenantId, userId, page ?: 0, size ?: 20)
     }
@@ -51,8 +56,8 @@ class TaskResolver(
 
     @MutationMapping
     @PreAuthorize("@sec.hasPermission('TASK_CREATE')")
-    fun createTask(@Argument input: CreateTaskInput): TaskDto {
-        val userId = UUID.fromString(SecurityUtils.getCurrentUserId()!!)
+    fun createTask(@Argument input: CreateTaskInput, @AuthenticationPrincipal jwt: Jwt): TaskDto {
+        val userId = UUID.fromString(jwt.subject)
         val tenantId = UUID.fromString(TenantContext.getRequired())
         return taskService.createTask(tenantId, userId, input)
     }
@@ -66,16 +71,16 @@ class TaskResolver(
 
     @MutationMapping
     @PreAuthorize("@sec.hasPermission('TASK_UPDATE')")
-    fun updateTaskStatus(@Argument id: String, @Argument status: String): TaskDto {
-        val userId = UUID.fromString(SecurityUtils.getCurrentUserId()!!)
+    fun updateTaskStatus(@Argument id: String, @Argument status: String, @AuthenticationPrincipal jwt: Jwt): TaskDto {
+        val userId = UUID.fromString(jwt.subject)
         val tenantId = UUID.fromString(TenantContext.getRequired())
         return taskService.updateTaskStatus(UUID.fromString(id), tenantId, TaskStatus.valueOf(status), userId)
     }
 
     @MutationMapping
     @PreAuthorize("@sec.hasPermission('TASK_ASSIGN')")
-    fun assignTask(@Argument id: String, @Argument userId: String): TaskDto {
-        val assignedBy = UUID.fromString(SecurityUtils.getCurrentUserId()!!)
+    fun assignTask(@Argument id: String, @Argument userId: String, @AuthenticationPrincipal jwt: Jwt): TaskDto {
+        val assignedBy = UUID.fromString(jwt.subject)
         val tenantId = UUID.fromString(TenantContext.getRequired())
         return taskService.assignTask(UUID.fromString(id), tenantId, UUID.fromString(userId), assignedBy)
     }
