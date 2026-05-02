@@ -18,4 +18,8 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-exporter-zipkin")
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("de.codecentric:spring-boot-admin-starter-client:3.3.4")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("io.mockk:mockk:1.13.13")
 }

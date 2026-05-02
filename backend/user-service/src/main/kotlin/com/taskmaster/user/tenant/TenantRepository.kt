@@ -15,6 +15,8 @@ interface TenantRepository : JpaRepository<Tenant, UUID>, JpaSpecificationExecut
 
     fun existsByDomain(domain: String): Boolean
 
+    fun countByActive(active: Boolean): Long
+
     @Query("SELECT COUNT(u) FROM User u WHERE u.tenantId = :tenantId AND u.active = true")
     fun countActiveUsers(tenantId: UUID): Long
 }

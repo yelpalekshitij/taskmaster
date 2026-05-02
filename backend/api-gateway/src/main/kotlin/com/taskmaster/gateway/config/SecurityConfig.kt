@@ -8,8 +8,8 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter
 import org.springframework.security.web.server.SecurityWebFilterChain
@@ -78,13 +78,15 @@ class SecurityConfig {
         }
     }
 
-    private fun buildJwtConverter(): JwtAuthenticationConverter {
-        val grantedAuthoritiesConverter = JwtGrantedAuthoritiesConverter().apply {
-            setAuthoritiesClaimName("realm_access.roles")
-            setAuthorityPrefix("ROLE_")
-        }
+    fun buildJwtConverter(): JwtAuthenticationConverter {
         return JwtAuthenticationConverter().apply {
-            setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter)
+            setJwtGrantedAuthoritiesConverter { jwt ->
+                @Suppress("UNCHECKED_CAST")
+                val roles = (jwt.getClaim<Map<String, Any>>("realm_access")
+                    ?.get("roles") as? Collection<String>)
+                    ?: emptyList()
+                roles.map { SimpleGrantedAuthority("ROLE_$it") }
+            }
         }
     }
 

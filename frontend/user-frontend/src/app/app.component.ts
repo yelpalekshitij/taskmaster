@@ -147,7 +147,7 @@ import { map } from 'rxjs/operators';
   `]
 })
 export class AppComponent implements OnInit {
-  private oidcService = inject(OidcSecurityService);
+  private readonly oidcService = inject(OidcSecurityService);
 
   isAuthenticated$!: Observable<boolean>;
   userEmail$!: Observable<string>;

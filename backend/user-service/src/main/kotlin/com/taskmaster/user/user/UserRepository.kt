@@ -12,4 +12,6 @@ interface UserRepository : JpaRepository<User, UUID>, JpaSpecificationExecutor<U
     fun findByKeycloakId(keycloakId: String): Optional<User>
     fun existsByEmailAndTenantId(email: String, tenantId: UUID): Boolean
     fun countByTenantIdAndActive(tenantId: UUID, active: Boolean): Long
+    fun countByTenantId(tenantId: UUID): Long
+    fun countByActive(active: Boolean): Long
 }

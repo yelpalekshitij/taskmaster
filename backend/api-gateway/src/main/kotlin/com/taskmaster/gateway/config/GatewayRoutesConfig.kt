@@ -15,7 +15,7 @@ class GatewayRoutesConfig {
         // User Service — REST endpoints
         // -------------------------------------------------------
         .route("user-service") { r ->
-            r.path("/api/v1/users/**", "/api/v1/tenants/**", "/api/v1/roles/**")
+            r.path("/api/v1/users/**", "/api/v1/tenants/**", "/api/v1/roles/**", "/api/v1/reports/**")
                 .uri("lb://user-service")
         }
 
