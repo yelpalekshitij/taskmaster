@@ -25,3 +25,10 @@ GRANT ALL ON SCHEMA public TO taskmaster;
 
 \c taskmanager_scheduler
 GRANT ALL ON SCHEMA public TO taskmaster;
+
+-- Keycloak database
+CREATE USER keycloak WITH PASSWORD 'keycloak_secret';
+CREATE DATABASE keycloak OWNER keycloak;
+GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
+\c keycloak
+GRANT ALL ON SCHEMA public TO keycloak;

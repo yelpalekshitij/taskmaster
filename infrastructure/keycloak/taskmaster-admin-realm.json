@@ -42,29 +42,9 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
-      }
-    },
-    {
-      "clientId": "taskmaster-backend",
-      "name": "TaskMaster Backend Service",
-      "enabled": true,
-      "publicClient": false,
-      "secret": "${KEYCLOAK_BACKEND_SECRET}",
-      "serviceAccountsEnabled": true,
-      "standardFlowEnabled": false,
-      "directAccessGrantsEnabled": false
-    }
-  ],
-
-  "protocolMappers": [],
-
-  "clientScopes": [
-    {
-      "name": "taskmaster-admin",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true"
       },
+      "defaultClientScopes": ["openid", "web-origins", "acr", "profile", "roles", "email"],
+      "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"],
       "protocolMappers": [
         {
           "name": "tenant-id-mapper",
@@ -80,6 +60,16 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "taskmaster-backend",
+      "name": "TaskMaster Backend Service",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${KEYCLOAK_BACKEND_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
     }
   ],
 
@@ -110,12 +100,52 @@
         {
           "type": "password",
           "value": "Admin@123!",
-          "temporary": true
+          "temporary": false
         }
       ],
       "realmRoles": ["MASTER_ADMIN"],
       "attributes": {
         "tenant_id": [""]
+      }
+    },
+    {
+      "id": "bbbbbbbb-0000-0000-0000-000000000001",
+      "username": "alice.johnson",
+      "email": "alice@acme.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Alice",
+      "lastName": "Johnson",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Seed@1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["TENANT_ADMIN"],
+      "attributes": {
+        "tenant_id": ["aaaaaaaa-0000-0000-0000-000000000001"]
+      }
+    },
+    {
+      "id": "bbbbbbbb-0000-0000-0000-000000000003",
+      "username": "carol.white",
+      "email": "carol@techstart.io",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Carol",
+      "lastName": "White",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Seed@1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["TENANT_ADMIN"],
+      "attributes": {
+        "tenant_id": ["aaaaaaaa-0000-0000-0000-000000000002"]
       }
     }
   ]

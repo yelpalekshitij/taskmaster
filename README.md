@@ -64,8 +64,8 @@ docker compose up -d
 
 | Service | URL | Default Credentials |
 |---|---|---|
-| User App | http://localhost:4200 | Created during tenant onboarding |
-| Admin App | http://localhost:4201 | `master-admin` / `Admin@123!` (change on first login) |
+| User App | http://localhost:4200 | See seed accounts below |
+| Admin App | http://localhost:4201 | See seed accounts below |
 | API Gateway Swagger | http://localhost:8080/swagger-ui.html | — |
 | Keycloak | http://localhost:8180 | `admin` / `admin` |
 | Spring Boot Admin | http://localhost:8090/admin | `admin` / `admin` |
@@ -78,19 +78,67 @@ docker compose up -d
 
 ---
 
-## Tenant Onboarding
+## Seed Data
+
+Two tenants and four users are pre-seeded and ready to use immediately after `docker compose up -d`.
+
+### Seed Accounts
+
+#### Admin Frontend — http://localhost:4201 (taskmaster-admin realm)
+
+| Username | Password | Role | Tenant | Notes |
+|---|---|---|---|---|
+| `master-admin` | `Admin@123!` | MASTER_ADMIN | — | Cross-tenant access; can create/manage all tenants |
+| `alice.johnson` | `Seed@1234` | TENANT_ADMIN | Acme Corp | Can manage users and tasks within Acme Corp |
+| `carol.white` | `Seed@1234` | TENANT_ADMIN | TechStart | Can manage users and tasks within TechStart |
+
+#### User Frontend — http://localhost:4200 (taskmaster-app realm)
+
+| Username | Password | Role | Tenant | Notes |
+|---|---|---|---|---|
+| `bob.smith` | `Seed@1234` | USER | Acme Corp | Full task CRUD within Acme Corp |
+| `dave.brown` | `Seed@1234` | READONLY | TechStart | Read-only view of TechStart tasks |
+
+### Seed Tasks
+
+**Acme Corp** — 4 tasks pre-loaded:
+- "Set up development environment" — TODO, HIGH, assigned to bob
+- "Implement user authentication flow" — IN_PROGRESS, HIGH, assigned to alice
+- "Write unit tests for task service" — TODO, MEDIUM, assigned to bob
+- "Review authentication PR" — ON_HOLD, LOW, unassigned
+
+**TechStart** — 4 tasks pre-loaded:
+- "Design multi-tenant database schema" — DONE, CRITICAL, assigned to carol
+- "Write API documentation" — IN_PROGRESS, MEDIUM, assigned to dave
+- "Deploy to staging environment" — TODO, HIGH, unassigned
+- "Set up monitoring and alerting" — TODO, MEDIUM, assigned to dave
+
+### How seed data is applied
+
+- **Keycloak users** — declared in `infrastructure/keycloak/taskmaster-admin-realm.json` and `taskmaster-app-realm.json`. Keycloak imports these on first startup only (realms that already exist in the database are skipped on subsequent starts). Passwords are imported in plain text and hashed by Keycloak on import.
+- **Tenant and user DB records** — applied by Flyway migration `V3__seed_tenants_users.sql` in user-service on first start.
+- **Tasks** — applied by Flyway migration `V2__seed_tasks.sql` in task-service on first start.
+- **Stable UUIDs** — Keycloak user IDs in the realm JSON match the `keycloak_id` column in the users table, so the JWT-to-user lookup works correctly without any manual step.
+
+> **Resetting seed data**: Keycloak data persists in PostgreSQL across restarts. To fully reset everything (Keycloak realms + all app databases), run `docker compose down -v` then `docker compose up -d`.
+
+---
+
+## Tenant Onboarding (manual)
+
+To create additional tenants beyond the seed data:
 
 ### Step 1: Login as MASTER_ADMIN
 ```
 URL: http://localhost:4201
 Username: master-admin
-Password: Admin@123! (change on first login)
+Password: Admin@123!
 ```
 
 ### Step 2: Create a new tenant via Admin App
 1. Navigate to **Tenants** → **Create Tenant**
 2. Fill in:
-   - Tenant name and domain (e.g., `acme.com`)
+   - Tenant name and domain (e.g., `mycompany.com`)
    - First TENANT_ADMIN user credentials
 3. Submit — this:
    - Creates a `Tenant` row in the database

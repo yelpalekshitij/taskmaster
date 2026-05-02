@@ -42,27 +42,9 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
-      }
-    },
-    {
-      "clientId": "taskmaster-backend",
-      "name": "TaskMaster Backend Service",
-      "enabled": true,
-      "publicClient": false,
-      "secret": "${KEYCLOAK_BACKEND_SECRET}",
-      "serviceAccountsEnabled": true,
-      "standardFlowEnabled": false,
-      "directAccessGrantsEnabled": false
-    }
-  ],
-
-  "clientScopes": [
-    {
-      "name": "taskmaster-app",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true"
       },
+      "defaultClientScopes": ["openid", "web-origins", "acr", "profile", "roles", "email"],
+      "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"],
       "protocolMappers": [
         {
           "name": "tenant-id-mapper",
@@ -78,6 +60,16 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "taskmaster-backend",
+      "name": "TaskMaster Backend Service",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${KEYCLOAK_BACKEND_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false
     }
   ],
 
@@ -92,6 +84,49 @@
         "clientSecret": "${GOOGLE_CLIENT_SECRET}",
         "defaultScope": "openid email profile",
         "syncMode": "IMPORT"
+      }
+    }
+  ],
+
+  "users": [
+    {
+      "id": "bbbbbbbb-0000-0000-0000-000000000002",
+      "username": "bob.smith",
+      "email": "bob@acme.com",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Bob",
+      "lastName": "Smith",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Seed@1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["USER"],
+      "attributes": {
+        "tenant_id": ["aaaaaaaa-0000-0000-0000-000000000001"]
+      }
+    },
+    {
+      "id": "bbbbbbbb-0000-0000-0000-000000000004",
+      "username": "dave.brown",
+      "email": "dave@techstart.io",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Dave",
+      "lastName": "Brown",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Seed@1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["READONLY"],
+      "attributes": {
+        "tenant_id": ["aaaaaaaa-0000-0000-0000-000000000002"]
       }
     }
   ]
