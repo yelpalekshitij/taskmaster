@@ -28,6 +28,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent),
     canActivate: [autoLoginPartialRoutesGuard]
   },
+  { path: 'login', loadComponent: () => import('./core/auth/login.component').then(m => m.LoginComponent) },
   { path: 'callback', loadComponent: () => import('./core/auth/callback.component').then(m => m.CallbackComponent) },
-  { path: '**', redirectTo: '/dashboard' }
+  { path: '**', redirectTo: '/login' }
 ];

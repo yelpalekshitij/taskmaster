@@ -1013,8 +1013,9 @@ frontend/user-frontend/
 1. App loads → `autoLoginPartialRoutesGuard` checks for valid token
 2. No token → redirect to Keycloak (`taskmaster-app` realm) login page
 3. User logs in → Keycloak redirects to `/callback?code=...`
-4. `CallbackComponent` handles the code exchange
+4. `CallbackComponent` handles the code exchange; navigates to `/dashboard` on success or `/login` on failure
 5. Token stored in memory + silent renew via refresh token
+6. Logout → Keycloak ends session → redirects to custom `/login` page (`postLogoutRedirectUri`)
 
 **GraphQL Client (Apollo Angular):**
 ```typescript
@@ -1034,6 +1035,7 @@ Same structure but:
 - No Apollo — uses `HttpClient` REST services
 - Role guards: `masterAdminGuard` and `tenantAdminGuard` restrict route access
 - Deep purple Material theme (visual differentiation)
+- Custom `/login` page displayed after logout (`postLogoutRedirectUri`) and on callback failures (breaks the redirect loop)
 
 ---
 

@@ -18,6 +18,7 @@ export const appConfig: ApplicationConfig = {
       config: {
         authority: environment.keycloak.authority,
         redirectUrl: environment.keycloak.redirectUrl,
+        postLogoutRedirectUri: environment.keycloak.postLogoutRedirectUri,
         clientId: environment.keycloak.clientId,
         scope: environment.keycloak.scope,
         responseType: environment.keycloak.responseType,

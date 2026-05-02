@@ -1,4 +1,4 @@
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -20,6 +20,7 @@ export const appConfig: ApplicationConfig = {
       config: {
         authority: environment.keycloak.authority,
         redirectUrl: environment.keycloak.redirectUrl,
+        postLogoutRedirectUri: environment.keycloak.postLogoutRedirectUri,
         clientId: environment.keycloak.clientId,
         scope: environment.keycloak.scope,
         responseType: environment.keycloak.responseType,

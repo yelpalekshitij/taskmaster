@@ -10,7 +10,6 @@
   "editUsernameAllowed": false,
   "accessTokenLifespan": 3600,
   "refreshTokenMaxReuse": 0,
-
   "roles": {
     "realm": [
       {
@@ -23,7 +22,6 @@
       }
     ]
   },
-
   "clients": [
     {
       "clientId": "taskmaster-admin-frontend",
@@ -41,10 +39,23 @@
         "http://admin-frontend:4201"
       ],
       "attributes": {
-        "pkce.code.challenge.method": "S256"
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4201/login##http://admin-frontend:4201/login"
       },
-      "defaultClientScopes": ["openid", "web-origins", "acr", "profile", "roles", "email"],
-      "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"],
+      "defaultClientScopes": [
+        "openid",
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
       "protocolMappers": [
         {
           "name": "tenant-id-mapper",
@@ -72,7 +83,6 @@
       "directAccessGrantsEnabled": false
     }
   ],
-
   "identityProviders": [
     {
       "alias": "google",
@@ -87,7 +97,6 @@
       }
     }
   ],
-
   "users": [
     {
       "username": "master-admin",
@@ -103,9 +112,13 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["MASTER_ADMIN"],
+      "realmRoles": [
+        "MASTER_ADMIN"
+      ],
       "attributes": {
-        "tenant_id": [""]
+        "tenant_id": [
+          ""
+        ]
       }
     },
     {
@@ -123,9 +136,13 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["TENANT_ADMIN"],
+      "realmRoles": [
+        "TENANT_ADMIN"
+      ],
       "attributes": {
-        "tenant_id": ["aaaaaaaa-0000-0000-0000-000000000001"]
+        "tenant_id": [
+          "aaaaaaaa-0000-0000-0000-000000000001"
+        ]
       }
     },
     {
@@ -143,9 +160,13 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["TENANT_ADMIN"],
+      "realmRoles": [
+        "TENANT_ADMIN"
+      ],
       "attributes": {
-        "tenant_id": ["aaaaaaaa-0000-0000-0000-000000000002"]
+        "tenant_id": [
+          "aaaaaaaa-0000-0000-0000-000000000002"
+        ]
       }
     }
   ]

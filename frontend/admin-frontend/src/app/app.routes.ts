@@ -1,9 +1,11 @@
 import { Routes } from '@angular/router';
 import { autoLoginPartialRoutesGuard } from 'angular-auth-oidc-client';
 import { masterAdminGuard, tenantAdminGuard, anyAdminGuard } from './core/guards/role.guard';
+import { UnauthorizedComponent } from './core/auth/unauthorized.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  { path: 'login', loadComponent: () => import('./core/auth/login.component').then(m => m.LoginComponent) },
   {
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
@@ -36,8 +38,8 @@ export const routes: Routes = [
   },
   {
     path: 'unauthorized',
-    loadComponent: () => import('./core/auth/callback.component').then(m => m.CallbackComponent)
+    component: UnauthorizedComponent
   },
   { path: 'callback', loadComponent: () => import('./core/auth/callback.component').then(m => m.CallbackComponent) },
-  { path: '**', redirectTo: '/dashboard' }
+  { path: '**', redirectTo: '/login' }
 ];

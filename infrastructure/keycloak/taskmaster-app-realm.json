@@ -10,7 +10,6 @@
   "editUsernameAllowed": false,
   "accessTokenLifespan": 3600,
   "refreshTokenMaxReuse": 0,
-
   "roles": {
     "realm": [
       {
@@ -23,7 +22,6 @@
       }
     ]
   },
-
   "clients": [
     {
       "clientId": "taskmaster-user-frontend",
@@ -41,10 +39,23 @@
         "http://user-frontend:4200"
       ],
       "attributes": {
-        "pkce.code.challenge.method": "S256"
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/login##http://user-frontend:4200/login"
       },
-      "defaultClientScopes": ["openid", "web-origins", "acr", "profile", "roles", "email"],
-      "optionalClientScopes": ["address", "phone", "offline_access", "microprofile-jwt"],
+      "defaultClientScopes": [
+        "openid",
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ],
       "protocolMappers": [
         {
           "name": "tenant-id-mapper",
@@ -72,7 +83,6 @@
       "directAccessGrantsEnabled": false
     }
   ],
-
   "identityProviders": [
     {
       "alias": "google",
@@ -87,7 +97,6 @@
       }
     }
   ],
-
   "users": [
     {
       "id": "bbbbbbbb-0000-0000-0000-000000000002",
@@ -104,9 +113,13 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["USER"],
+      "realmRoles": [
+        "USER"
+      ],
       "attributes": {
-        "tenant_id": ["aaaaaaaa-0000-0000-0000-000000000001"]
+        "tenant_id": [
+          "aaaaaaaa-0000-0000-0000-000000000001"
+        ]
       }
     },
     {
@@ -124,9 +137,13 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["READONLY"],
+      "realmRoles": [
+        "READONLY"
+      ],
       "attributes": {
-        "tenant_id": ["aaaaaaaa-0000-0000-0000-000000000002"]
+        "tenant_id": [
+          "aaaaaaaa-0000-0000-0000-000000000002"
+        ]
       }
     }
   ]

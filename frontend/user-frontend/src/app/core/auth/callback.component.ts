@@ -34,7 +34,7 @@ export class CallbackComponent implements OnInit {
       if (isAuthenticated) {
         this.router.navigate(['/dashboard']);
       } else {
-        this.router.navigate(['/']);
+        this.router.navigate(['/login']);
       }
     });
   }
