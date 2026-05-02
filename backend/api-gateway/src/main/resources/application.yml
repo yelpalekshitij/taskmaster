@@ -165,11 +165,11 @@ spring:
 keycloak:
   realms:
     admin:
-      jwk-set-uri: http://localhost:8180/realms/taskmaster-admin/protocol/openid-connect/certs
-      issuer-uri: http://localhost:8180/realms/taskmaster-admin
+      jwk-set-uri: http://keycloak:8180/realms/taskmaster-admin/protocol/openid-connect/certs
+      issuer-uri: http://keycloak:8180/realms/taskmaster-admin
     app:
-      jwk-set-uri: http://localhost:8180/realms/taskmaster-app/protocol/openid-connect/certs
-      issuer-uri: http://localhost:8180/realms/taskmaster-app
+      jwk-set-uri: http://keycloak:8180/realms/taskmaster-app/protocol/openid-connect/certs
+      issuer-uri: http://keycloak:8180/realms/taskmaster-app
 
 spring.boot.admin.client.url: http://localhost:8090
 spring.boot.admin.client.instance.service-url: http://localhost:8080

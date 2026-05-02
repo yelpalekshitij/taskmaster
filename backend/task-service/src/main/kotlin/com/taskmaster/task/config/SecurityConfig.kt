@@ -16,9 +16,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.cors.CorsConfigurationSource
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import java.util.concurrent.ConcurrentHashMap
 
 @Configuration
@@ -61,7 +58,7 @@ class SecurityConfig {
 
         http
             .csrf { it.disable() }
-            .cors { it.configurationSource(corsConfigurationSource()) }
+            .cors { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
@@ -75,20 +72,6 @@ class SecurityConfig {
             }
 
         return http.build()
-    }
-
-    @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val config = CorsConfiguration().apply {
-            allowedOrigins = listOf("http://localhost:4200", "http://localhost:4201")
-            allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-            allowedHeaders = listOf("*")
-            allowCredentials = true
-            maxAge = 3600L
-        }
-        return UrlBasedCorsConfigurationSource().apply {
-            registerCorsConfiguration("/**", config)
-        }
     }
 
     @Bean
