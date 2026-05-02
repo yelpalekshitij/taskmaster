@@ -19,14 +19,14 @@ include(
     "task-service",
     "notification-service",
     "scheduler-service",
-    "admin-server"
+    "spring-boot-admin-server"
 )
 
 // Map module names to their location under backend/
 listOf(
     "service-registry", "config-server", "api-gateway",
     "user-service", "task-service", "notification-service",
-    "scheduler-service", "admin-server"
+    "scheduler-service", "spring-boot-admin-server"
 ).forEach { name ->
     project(":$name").projectDir = file("backend/$name")
 }

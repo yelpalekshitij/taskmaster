@@ -40,7 +40,7 @@ spring:
   boot:
     admin:
       client:
-        url: ${ADMIN_SERVER_URL:http://admin-server:8090}
+        url: ${ADMIN_SERVER_URL:http://spring-boot-admin-server:8090}
         instance:
           name: api-gateway
           service-url: ${GATEWAY_SERVICE_URL:http://api-gateway:8080}

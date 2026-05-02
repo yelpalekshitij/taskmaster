@@ -3,6 +3,10 @@ plugins {
     kotlin("plugin.jpa")
 }
 
+springBoot {
+    buildInfo()
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -28,6 +32,7 @@ dependencies {
         exclude(group = "org.slf4j")
     }
     implementation("de.codecentric:spring-boot-admin-starter-client:3.3.4")
+    implementation("org.jolokia:jolokia-support-spring:2.1.1")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

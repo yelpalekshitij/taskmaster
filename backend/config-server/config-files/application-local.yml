@@ -1,10 +1,16 @@
 # Local/Docker Compose overrides
+
 eureka:
   client:
     service-url:
       defaultZone: http://eureka:eureka_secret@service-registry:8761/eureka/
 
 spring:
+  # Disable SBA direct-registration from services; Eureka discovery handles it
+  boot:
+    admin:
+      client:
+        enabled: false
   datasource:
     url: jdbc:postgresql://postgres:5432/${DB_NAME:taskmanager}
     username: taskmaster

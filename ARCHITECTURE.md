@@ -27,7 +27,8 @@ This document provides a deep dive into every architectural component of the Tas
 19. [Scaling & High Availability](#19-scaling--high-availability)
 20. [Adding a New Feature](#20-adding-a-new-feature)
 21. [Adding a New Tenant](#21-adding-a-new-tenant)
-22. [API Reference Index](#22-api-reference-index)
+22. [Spring Boot Admin](#22-spring-boot-admin)
+23. [API Reference Index](#23-api-reference-index)
 
 ---
 
@@ -80,7 +81,7 @@ This document provides a deep dive into every architectural component of the Tas
 | `task-service` | 8082 | Task CRUD, Spring GraphQL, Kafka Outbox publisher. |
 | `notification-service` | 8083 | Kafka consumer for async notification delivery. Email (Mailhog) + FCM push. |
 | `scheduler-service` | 8084 | Quartz-based task scheduling. Triggers status changes and due-date reminders. |
-| `admin-server` | 8090 | Spring Boot Admin. Monitors all services, runtime log-level changes, JMX. |
+| `spring-boot-admin-server` | 8090 | Spring Boot Admin. Full monitoring: Info, Health, Metrics, Loggers, JVM/JMX, Mappings, Beans, Config, Conditions, Scheduled Tasks, Flyway, Caches. |
 
 ---
 
@@ -1154,7 +1155,53 @@ Content-Type: application/json
 
 ---
 
-## 22. API Reference Index
+## 22. Spring Boot Admin
+
+Access: **http://localhost:8090/admin** (`admin` / `admin`)
+
+Spring Boot Admin discovers all registered services via Eureka and presents a unified operations dashboard.
+
+### Available Tabs Per Instance
+
+| Tab | What It Shows | Requires |
+|---|---|---|
+| **Details / Health** | Health contributors (DB, Redis, Kafka, Keycloak), uptime, metadata | `health` endpoint |
+| **Info** | Build artifact, version, build time, Java version, OS | `info` endpoint + `springBoot { buildInfo() }` |
+| **Metrics** | All Micrometer meters — JVM heap, GC, HTTP latency, DB pool, cache hit rate | `metrics` endpoint |
+| **Environment** | All resolved config properties (masked sensitive values) | `env` endpoint |
+| **Beans** | Full Spring application context — all beans and their types | `beans` endpoint |
+| **Configuration Properties** | `@ConfigurationProperties` classes with resolved values | `configprops` endpoint |
+| **Conditions** | Auto-configuration positive/negative matches | `conditions` endpoint |
+| **Scheduled Tasks** | All `@Scheduled` tasks and their expressions | `scheduledtasks` endpoint |
+| **Mappings** | All `@RequestMapping` / GraphQL routes | `mappings` endpoint |
+| **Loggers** | Live log-level change per package/class — no restart required | `loggers` endpoint |
+| **JVM** | Thread dump (live thread states), heap dump download, JMX MBeans | `threaddump` + `heapdump` + `jolokia` |
+| **Data → Flyway** | Applied migrations per datasource with checksums | `flyway` endpoint |
+| **Data → Caches** | All registered cache regions (Redis-backed) | `caches` endpoint |
+
+### How It Works
+
+Each service registers itself with the SBA server by sending its actuator base URL to `http://spring-boot-admin-server:8090/admin/instances`. The SBA server then polls each endpoint listed in the table above.
+
+Registration is automatic — no manual configuration needed per service. The `spring-boot-admin-starter-client` dependency handles it.
+
+### Actuator Security
+
+All services expose actuator endpoints via Spring Security's resource server (JWT-required). SBA's client-side registration metadata includes the actuator URL; the SBA server queries them without needing a JWT because it reaches services over the internal Docker network where services aren't exposing actuator through the API Gateway.
+
+> **Note:** In production, restrict actuator exposure to `health` and `prometheus` only (already set in `application-prod.yml`). The full endpoint set is safe for `local`, `dev`, and optionally `stage`.
+
+### Jolokia / JMX
+
+JVM and JMX access uses [Jolokia 2.x](https://jolokia.org/) (`org.jolokia:jolokia-support-spring:2.1.1`), which bridges JMX over HTTP. Registered at `/actuator/jolokia` on each service. The api-gateway (WebFlux/reactive) does **not** include Jolokia since Jolokia requires the Servlet stack.
+
+### Build Info
+
+`springBoot { buildInfo() }` in each service's `build.gradle.kts` generates `META-INF/build-info.properties` at compile time. This populates the **Info** tab with artifact name, version, and build timestamp.
+
+---
+
+## 23. API Reference Index
 
 Full interactive docs at: **http://localhost:8080/swagger-ui.html**
 

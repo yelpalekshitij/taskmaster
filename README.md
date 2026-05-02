@@ -225,7 +225,7 @@ TaskMaster/
 │   ├── scheduler-service/        Quartz scheduling
 │   ├── config-server/            Spring Cloud Config + profile files
 │   ├── service-registry/         Eureka Server
-│   └── admin-server/             Spring Boot Admin
+│   └── spring-boot-admin-server/ Spring Boot Admin
 ├── frontend/
 │   ├── user-frontend/            Angular 19 — end user app
 │   └── admin-frontend/           Angular 19 — admin app

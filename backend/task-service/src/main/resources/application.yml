@@ -91,7 +91,7 @@ management:
 
 spring-boot-admin:
   client:
-    url: http://admin-server:9090
+    url: http://spring-boot-admin-server:9090
     instance:
       service-base-url: http://task-service:8082
 

@@ -36,11 +36,7 @@ class SecurityConfig {
             .authorizeExchange { auth ->
                 auth
                     .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .pathMatchers(
-                        "/actuator/health",
-                        "/actuator/info",
-                        "/actuator/prometheus"
-                    ).permitAll()
+                    .pathMatchers("/actuator/**").permitAll()
                     .pathMatchers(
                         "/v3/api-docs/**",
                         "/swagger-ui/**",

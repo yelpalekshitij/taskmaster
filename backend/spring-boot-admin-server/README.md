@@ -1,4 +1,4 @@
-# admin-server
+# spring-boot-admin-server
 
 Spring Boot Admin — runtime monitoring dashboard for all TaskMaster services. Provides health status, log-level management, JMX beans, thread dumps, and metrics.
 
@@ -31,14 +31,14 @@ Credentials: `admin` / `admin` (set via `ADMIN_SERVER_USER` / `ADMIN_SERVER_PASS
 
 ## How Services Register
 
-All application services include `spring-boot-admin-starter-client`. They register with admin-server on startup:
+All application services include `spring-boot-admin-starter-client`. They register with spring-boot-admin-server on startup:
 
 ```yaml
 spring:
   boot:
     admin:
       client:
-        url: http://admin-server:8090/admin
+        url: http://spring-boot-admin-server:8090/admin
         username: admin
         password: ${ADMIN_SERVER_PASSWORD:admin}
 management:
@@ -95,15 +95,15 @@ eureka:
       defaultZone: http://service-registry:8761/eureka/
 ```
 
-Admin-server itself registers with Eureka so it appears as a service instance.
+Spring boot admin-server itself registers with Eureka so it appears as a service instance.
 
 ---
 
 ## Running Locally
 
 ```bash
-docker compose up -d admin-server
+docker compose up -d spring-boot-admin-server
 
-# Note: Kafka UI runs on 8090 too — admin-server uses path /admin to avoid conflict
+# Note: Kafka UI runs on 8090 too — spring-boot-admin-server uses path /admin to avoid conflict
 # Kafka UI: http://localhost:9091
 ```

@@ -12,7 +12,7 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
   instance:
-    prefer-ip-address: true
+    prefer-ip-address: false
     instance-id: ${spring.application.name}:${random.uuid}
     lease-renewal-interval-in-seconds: 10
     lease-expiration-duration-in-seconds: 30
@@ -21,11 +21,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,loggers,metrics,env,caches
+        include: "health,info,prometheus,loggers,metrics,env,caches,beans,configprops,conditions,scheduledtasks,mappings,flyway,threaddump,heapdump,jolokia"
   endpoint:
     health:
       show-details: always
     loggers:
+      enabled: true
+  info:
+    java:
+      enabled: true
+    os:
+      enabled: true
+    build:
+      enabled: true
+    git:
       enabled: true
   metrics:
     tags:

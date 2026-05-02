@@ -1,6 +1,6 @@
 spring:
   application:
-    name: admin-server
+    name: spring-boot-admin-server
   config:
     import: optional:configserver:http://config-server:8888
 
@@ -10,10 +10,10 @@ server:
 spring.boot.admin:
   context-path: /admin
   discovery:
-    # Exclude admin-server itself from the SBA instance list — it would always
+    # Exclude spring-boot-admin-server itself from the SBA instance list — it would always
     # show as DOWN because SBA resolves its own actuator URL via Eureka metadata
     # (Docker-internal hostname) which doesn't match how it reaches other services.
-    ignored-services: admin-server
+    ignored-services: spring-boot-admin-server
 
 eureka:
   client:

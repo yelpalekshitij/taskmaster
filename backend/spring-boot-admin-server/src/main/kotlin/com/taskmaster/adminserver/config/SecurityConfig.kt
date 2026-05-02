@@ -9,9 +9,6 @@ import org.springframework.security.core.userdetails.User
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -19,12 +16,22 @@ class SecurityConfig(private val adminServer: AdminServerProperties) {
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
+        // Redirect to /admin (no trailing slash). adminServer.path("/") produces /admin/
+        // which SBA's SpaController doesn't handle — only /admin (no slash) returns 200.
+        val dashboardUrl = adminServer.path("/applications")
+
         val successHandler = SavedRequestAwareAuthenticationSuccessHandler().apply {
             setTargetUrlParameter("redirectTo")
-            setDefaultTargetUrl(adminServer.path("/"))
+            setDefaultTargetUrl(dashboardUrl)
+            // Always redirect to dashboard after login. Without this, Spring saves the
+            // background API request that triggered 401 and after login redirects to
+            // that API URL → 404 Whitelabel Error.
+            setAlwaysUseDefaultTargetUrl(true)
         }
 
         http
+            // CSRF disabled: SBA is an internal dev tool behind a private network.
+            .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers(adminServer.path("/assets/**")).permitAll()
@@ -39,22 +46,6 @@ class SecurityConfig(private val adminServer: AdminServerProperties) {
             }
             .logout { logout ->
                 logout.logoutUrl(adminServer.path("/logout"))
-            }
-            // httpBasic lets the SBA JavaScript frontend authenticate API calls directly
-            // without triggering a form-login redirect that would result in a 404 after login.
-            .httpBasic { }
-            .csrf { csrf ->
-                // CookieCsrfTokenRepository makes the CSRF token readable by the SBA JS frontend.
-                // Without this, background API calls from the UI fail CSRF checks, trigger a
-                // re-login redirect, and after login the user lands on an API URL → 404.
-                csrf
-                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                    .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
-                    .ignoringRequestMatchers(
-                        AntPathRequestMatcher(adminServer.path("/instances")),
-                        AntPathRequestMatcher(adminServer.path("/instances/**")),
-                        AntPathRequestMatcher(adminServer.path("/actuator/**"))
-                    )
             }
 
         return http.build()

@@ -366,6 +366,7 @@ services:
       context: .
       dockerfile: backend/api-gateway/Dockerfile
     container_name: taskmaster-api-gateway
+    hostname: api-gateway
     depends_on:
       config-server:
         condition: service_healthy
@@ -387,6 +388,7 @@ services:
       context: .
       dockerfile: backend/user-service/Dockerfile
     container_name: taskmaster-user-service
+    hostname: user-service
     depends_on:
       config-server:
         condition: service_healthy
@@ -410,6 +412,7 @@ services:
       context: .
       dockerfile: backend/task-service/Dockerfile
     container_name: taskmaster-task-service
+    hostname: task-service
     depends_on:
       config-server:
         condition: service_healthy
@@ -433,6 +436,7 @@ services:
       context: .
       dockerfile: backend/notification-service/Dockerfile
     container_name: taskmaster-notification-service
+    hostname: notification-service
     depends_on:
       config-server:
         condition: service_healthy
@@ -461,6 +465,7 @@ services:
       context: .
       dockerfile: backend/scheduler-service/Dockerfile
     container_name: taskmaster-scheduler-service
+    hostname: scheduler-service
     depends_on:
       config-server:
         condition: service_healthy
@@ -474,12 +479,13 @@ services:
       timeout: 5s
       retries: 5
 
-  admin-server:
+  spring-boot-admin-server:
     <<: *spring-boot-defaults
     build:
       context: .
-      dockerfile: backend/admin-server/Dockerfile
-    container_name: taskmaster-admin-server
+      dockerfile: backend/spring-boot-admin-server/Dockerfile
+    container_name: taskmaster-spring-boot-admin-server
+    hostname: spring-boot-admin-server
     depends_on:
       service-registry:
         condition: service_healthy
