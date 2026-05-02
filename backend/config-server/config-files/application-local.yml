@@ -10,10 +10,11 @@ spring:
     username: taskmaster
     password: taskmaster_secret
     driver-class-name: org.postgresql.Driver
-  redis:
-    host: redis
-    port: 6379
-    password: redis_secret
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: redis_secret
   kafka:
     bootstrap-servers: kafka:9092
 

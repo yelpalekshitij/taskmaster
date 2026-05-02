@@ -1,6 +1,87 @@
-# PRODUCTION environment placeholder
-# Override with actual production infrastructure values
-logging.level.root: WARN
-logging.level.com.taskmaster: INFO
-management.endpoints.web.exposure.include: health,prometheus
-management.tracing.sampling.probability: 0.1
+# -----------------------------------------------------------------------
+# PRODUCTION environment — shared overrides for all services
+# Deploy: set SPRING_PROFILES_ACTIVE=prod on every service container
+# Secrets: NEVER commit real values here — use AWS SSM / Vault / k8s secrets
+#          and inject as environment variables.
+# -----------------------------------------------------------------------
+
+# --- Database -----------------------------------------------------------
+spring:
+  datasource:
+    # CHANGE: use managed DB (e.g. AWS RDS Aurora PostgreSQL)
+    url: jdbc:postgresql://${DB_HOST:CHANGE_ME}:${DB_PORT:5432}/${DB_NAME:taskmanager}
+    username: ${DB_USERNAME:CHANGE_ME}
+    password: ${DB_PASSWORD:CHANGE_ME}
+    # CHANGE: tune pool size based on RDS max_connections / number of service instances
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+
+  # --- Redis -------------------------------------------------------------
+  data:
+    redis:
+      # CHANGE: use managed Redis (e.g. AWS ElastiCache)
+      host: ${REDIS_HOST:CHANGE_ME}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:CHANGE_ME}
+      # CHANGE: enable TLS for ElastiCache in-transit encryption
+      ssl:
+        enabled: true
+
+  # --- Kafka -------------------------------------------------------------
+  kafka:
+    # CHANGE: use managed Kafka (e.g. AWS MSK). Use SASL_SSL for MSK.
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:CHANGE_ME}
+    # Uncomment and fill for MSK SASL/SCRAM auth:
+    # properties:
+    #   security.protocol: SASL_SSL
+    #   sasl.mechanism: SCRAM-SHA-512
+    #   sasl.jaas.config: >
+    #     org.apache.kafka.common.security.scram.ScramLoginModule required
+    #     username="${KAFKA_USERNAME}" password="${KAFKA_PASSWORD}";
+
+# --- Eureka -------------------------------------------------------------
+# NOTE: In a Kubernetes deployment, Eureka can be replaced by kube-dns.
+#       In that case, disable Eureka client on all services and remove this block.
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${SERVICE_REGISTRY_HOST:service-registry}:8761/eureka/
+  # CHANGE: protect service-registry at network level (private subnet/VPN).
+  # Spring Cloud 2024.x does not transmit Basic Auth from defaultZone URLs,
+  # so application-level auth on the registry blocks all registrations.
+
+# --- Keycloak -----------------------------------------------------------
+# CHANGE: use the production Keycloak hostname (with HTTPS).
+#         Set "SSL Required: All" (sslRequired: all) in Keycloak realm settings.
+keycloak:
+  realms:
+    admin:
+      issuer-uri: ${KEYCLOAK_ADMIN_ISSUER_URI:CHANGE_ME}
+      jwk-set-uri: ${KEYCLOAK_ADMIN_JWK_URI:CHANGE_ME}
+    app:
+      issuer-uri: ${KEYCLOAK_APP_ISSUER_URI:CHANGE_ME}
+      jwk-set-uri: ${KEYCLOAK_APP_JWK_URI:CHANGE_ME}
+
+# --- Observability ------------------------------------------------------
+management:
+  endpoints:
+    web:
+      exposure:
+        # CHANGE: restrict to health + prometheus only. Never expose env/loggers in prod.
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+  tracing:
+    sampling:
+      # 10% sampling in prod — increase only for incident investigation
+      probability: ${TRACING_PROBABILITY:0.1}
+
+logging:
+  level:
+    root: WARN
+    com.taskmaster: INFO
+    # CHANGE: set to WARN once the app is stable in prod

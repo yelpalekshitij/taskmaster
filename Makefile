@@ -39,6 +39,6 @@ logs-all:
 test:
 	./gradlew test
 
-## Rebuild a specific service: make rebuild s=task-service
+## Rebuild a specific service (builds JAR first): make rebuild s=task-service
 rebuild:
-	docker compose build $(s) && docker compose up -d $(s)
+	./gradlew :$(s):bootJar -x test && docker compose build $(s) && docker compose up -d $(s)

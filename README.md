@@ -149,8 +149,11 @@ Profile config files are in `backend/config-server/config-files/`.
 ## Development
 
 ### Build a single service
+
+> **Important:** Spring Boot service Dockerfiles copy a pre-built JAR — you must run the Gradle build **before** `docker compose build`. Use `up -d` (not `restart`) when you want the new image to take effect.
+
 ```bash
-./gradlew :task-service:build
+./gradlew :task-service:bootJar -x test
 docker compose build task-service
 docker compose up -d task-service
 ```
@@ -262,6 +265,19 @@ docker compose up -d --scale task-service=3 --scale notification-service=2
 ```
 
 Services register with Eureka and the API Gateway automatically load-balances across instances. Quartz in the scheduler-service is configured for clustered mode — multiple instances safely share one DB-backed job store.
+
+---
+
+## Troubleshooting
+
+### Keycloak returns 403 "HTTPS required"
+When running under Docker Compose, browser requests reach Keycloak via Docker's port-mapping, so Keycloak sees the source IP as the Docker gateway (e.g., `172.17.0.1`) rather than `127.0.0.1`. Keycloak treats that as an "external" origin and enforces HTTPS. Both realm JSONs set `"sslRequired": "none"` to avoid this. If you recreate Keycloak with a fresh realm import that has `"sslRequired": "external"`, restore it to `"none"` and restart the container.
+
+### Swagger UI shows "Service Unavailable" for all services
+The gateway proxies api-docs requests via Eureka (`lb://user-service/...`). If Eureka is empty, every proxy returns 503. Check `http://localhost:8761` — all 7 services should appear as UP. If services are missing, check their logs for registration errors and verify the service-registry container is healthy.
+
+### Services fail to register with Eureka (401)
+Spring Cloud Netflix 2024.0.x does not send Basic Auth credentials that are embedded in `defaultZone` URLs. The service-registry `SecurityConfig` therefore permits all requests (no auth). If you see 401 in service logs, verify `SecurityConfig.kt` exists in `backend/service-registry/src/main/kotlin/com/taskmaster/registry/config/` and that the service-registry image has been rebuilt after any changes.
 
 ---
 

@@ -298,7 +298,7 @@ All services register with Eureka at startup:
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka:eureka_secret@service-registry:8761/eureka/
+      defaultZone: http://service-registry:8761/eureka/
   instance:
     instance-id: ${spring.application.name}:${random.uuid}
     lease-renewal-interval-in-seconds: 10
@@ -306,6 +306,32 @@ eureka:
 ```
 
 Each service sends heartbeats every 10 seconds. Instances are deregistered after 30 seconds of missed heartbeats.
+
+### Keycloak master realm SSL fix
+
+The `master` realm has no import JSON — it is always created fresh with `sslRequired=external`. Under Docker Compose, requests arrive from the Docker gateway IP, which Keycloak treats as "external" → 403 HTTPS required on the Keycloak admin console.
+
+The `keycloak-init` service in `docker-compose.yml` runs `kcadm.sh` once after Keycloak becomes healthy to patch the master realm:
+```bash
+kcadm.sh config credentials --server http://keycloak:8180 --realm master --user admin --password admin
+kcadm.sh update realms/master -s sslRequired=NONE
+```
+
+The imported app/admin realms (`taskmaster-app-realm.json`, `taskmaster-admin-realm.json`) already have `sslRequired: none` set directly in the JSON.
+
+---
+
+### Security — Open Registry (Local Dev)
+
+`service-registry` ships with a `SecurityConfig` that permits all requests and disables CSRF:
+
+```kotlin
+// backend/service-registry/src/main/kotlin/com/taskmaster/registry/config/SecurityConfig.kt
+http.csrf { it.disable() }
+    .authorizeHttpRequests { auth -> auth.anyRequest().permitAll() }
+```
+
+**Why open?** Spring Cloud Netflix 2024.0.x strips URL-embedded credentials (`http://user:pass@host/eureka/`) before sending the HTTP request — the Eureka client never transmits Basic Auth headers even when credentials are present in `defaultZone`. Requiring authentication on the registry therefore blocks all client registrations. Opening the registry is the standard practice for Docker Compose local development; production deployments should sit behind a private network or VPN instead.
 
 ### Client-Side Load Balancing (Feign + Spring Cloud LoadBalancer)
 
@@ -361,6 +387,32 @@ task-service-local.yml (highest priority)
 
 1. Edit the appropriate file in `backend/config-server/config-files/`
 2. Either restart the service, or call `/actuator/refresh` (Spring Cloud Config Bus not configured yet)
+
+### Deploying to dev / stage / prod
+
+Set `SPRING_PROFILES_ACTIVE` to the target profile on every service container. Config resolution picks up the matching `application-{profile}.yml` from the config-server automatically.
+
+| Profile | `SPRING_PROFILES_ACTIVE` | Config file loaded |
+|---|---|---|
+| Local Docker Compose | `local` | `application-local.yml` |
+| Dev environment | `dev` | `application-dev.yml` |
+| Staging | `stage` | `application-stage.yml` |
+| Production | `prod` | `application-prod.yml` |
+
+**Key things that must change per environment** (all marked with `# CHANGE` comments in the config files):
+
+| Concern | Local | Dev | Stage | Prod |
+|---|---|---|---|---|
+| DB | Docker postgres container | Managed RDS | Managed RDS | Managed RDS (Aurora) |
+| Redis | Docker Redis container | Managed ElastiCache | Managed ElastiCache | Managed ElastiCache + TLS |
+| Kafka | Docker Kafka PLAINTEXT | Managed MSK | Managed MSK | Managed MSK + SASL_SSL |
+| Keycloak | `start-dev` + `dev-mem` + `sslRequired: none` | Dedicated Keycloak + postgres | Dedicated Keycloak + postgres | `start` + postgres + HTTPS + `sslRequired: all` |
+| Secrets | Hardcoded in config files | Env vars / `.env` file | Env vars injected by CI | AWS SSM / Vault — never in files |
+| Tracing | 100% | 100% | 50% | 10% |
+| Actuator exposure | All endpoints | All endpoints | health, info, prometheus | health, prometheus |
+| CORS origins | localhost:4200/4201 | Dev frontend URL | Stage frontend URL | Production frontend URL |
+| Quartz clustering | `isClustered: false` | `false` (1 instance) | `true` if scaled | `true` |
+| Elasticsearch security | `xpack.security.enabled=false` | enabled | enabled | enabled + TLS |
 
 ---
 
@@ -599,17 +651,24 @@ Preferences are auto-created with defaults on first access.
 
 ### Quartz Configuration
 
-Quartz uses PostgreSQL as its job store (clustered mode):
+Quartz uses Spring Boot's `LocalDataSourceJobStore` with the `taskmanager_scheduler` PostgreSQL database. The job store class is wired automatically by Spring's `SchedulerFactoryBean.setDataSource()` — do **not** set `org.quartz.jobStore.class` explicitly (that bypasses Spring's DataSource injection and causes startup failures).
+
 ```yaml
-spring.quartz:
-  job-store-type: jdbc
-  properties:
-    org.quartz.jobStore.isClustered: true
-    org.quartz.scheduler.instanceId: AUTO
-    org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+spring:
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always   # creates QRTZ_* tables on first start
+    properties:
+      org.quartz.scheduler.instanceName: TaskMasterScheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      org.quartz.jobStore.isClustered: false   # set true when scaling horizontally
+      org.quartz.threadPool.threadCount: 5
 ```
 
-Quartz creates its own `QRTZ_*` tables in `taskmanager_scheduler`. Multiple scheduler instances safely share the job store — Quartz's optimistic locking prevents duplicate job execution.
+Quartz creates its own `QRTZ_*` tables in `taskmanager_scheduler`. When `isClustered: true`, multiple instances share the job store using optimistic row-level locking — each job fires on exactly one instance.
 
 ### Job Types
 

@@ -17,11 +17,15 @@ spring:
   quartz:
     job-store-type: jdbc
     jdbc:
-      initialize-schema: never
+      initialize-schema: always
     properties:
-      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-      org.quartz.jobStore.isClustered: true
+      org.quartz.scheduler.instanceName: TaskMasterScheduler
       org.quartz.scheduler.instanceId: AUTO
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      # CHANGE (prod/stage): set to true when running multiple scheduler-service instances
+      org.quartz.jobStore.isClustered: false
+      org.quartz.threadPool.threadCount: 5
   security:
     oauth2:
       resourceserver:

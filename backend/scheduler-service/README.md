@@ -43,9 +43,9 @@ Triggers based on a configurable offset before task due date (default: 1 hour). 
 
 ## Quartz Clustering
 
-Quartz is configured for JDBC store (`org.quartz.jobStore.class = JobStoreTX`) backed by the `taskmanager_scheduler` PostgreSQL database. Clustered mode (`org.quartz.jobStore.isClustered = true`) allows running multiple scheduler-service instances — only one instance fires each job, preventing duplicate execution.
+Quartz uses Spring Boot's `LocalDataSourceJobStore` (wired automatically via `SchedulerFactoryBean.setDataSource()`) backed by the `taskmanager_scheduler` PostgreSQL database. Do NOT set `org.quartz.jobStore.class` in properties — that bypasses Spring's DataSource injection and causes `DataSource name not set` on startup.
 
-Scale with:
+For multi-instance deployment, change `isClustered` to `true` and scale:
 ```bash
 docker compose up -d --scale scheduler-service=2
 ```
@@ -100,16 +100,15 @@ spring:
   quartz:
     job-store-type: jdbc
     jdbc:
-      initialize-schema: never   # managed by Flyway
+      initialize-schema: always   # creates QRTZ_* tables on first start
     properties:
-      org.quartz.jobStore.isClustered: true
-      org.quartz.jobStore.clusterCheckinInterval: 20000
-keycloak:
-  client-credentials:
-    server-url: http://keycloak:8180
-    realm: taskmaster-app
-    client-id: scheduler-service
-    client-secret: ${SCHEDULER_CLIENT_SECRET}
+      # Do NOT set org.quartz.jobStore.class — Spring Boot injects LocalDataSourceJobStore
+      org.quartz.scheduler.instanceName: TaskMasterScheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      org.quartz.jobStore.isClustered: false   # set true when scaling to multiple instances
+      org.quartz.threadPool.threadCount: 5
 ```
 
 ---

@@ -1,4 +1,59 @@
-# STAGING environment placeholder
-# Override with actual staging infrastructure values
-logging.level.com.taskmaster: INFO
-management.endpoints.web.exposure.include: health,info,prometheus
+# -----------------------------------------------------------------------
+# STAGING environment — shared overrides for all services
+# Deploy: set SPRING_PROFILES_ACTIVE=stage on every service container
+# Secrets: inject via environment variables or a secrets manager (Vault, AWS SSM)
+# -----------------------------------------------------------------------
+
+# --- Database -----------------------------------------------------------
+spring:
+  datasource:
+    # CHANGE: replace with actual staging DB host/port (e.g. RDS endpoint)
+    url: jdbc:postgresql://${DB_HOST:CHANGE_ME}:${DB_PORT:5432}/${DB_NAME:taskmanager}
+    username: ${DB_USERNAME:CHANGE_ME}
+    password: ${DB_PASSWORD:CHANGE_ME}
+
+  # --- Redis -------------------------------------------------------------
+  data:
+    redis:
+      host: ${REDIS_HOST:CHANGE_ME}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:CHANGE_ME}
+
+  # --- Kafka -------------------------------------------------------------
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:CHANGE_ME}
+
+# --- Eureka -------------------------------------------------------------
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${SERVICE_REGISTRY_HOST:service-registry}:8761/eureka/
+
+# --- Keycloak -----------------------------------------------------------
+keycloak:
+  realms:
+    admin:
+      issuer-uri: ${KEYCLOAK_ADMIN_ISSUER_URI:CHANGE_ME}
+      jwk-set-uri: ${KEYCLOAK_ADMIN_JWK_URI:CHANGE_ME}
+    app:
+      issuer-uri: ${KEYCLOAK_APP_ISSUER_URI:CHANGE_ME}
+      jwk-set-uri: ${KEYCLOAK_APP_JWK_URI:CHANGE_ME}
+
+# --- Observability ------------------------------------------------------
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      # CHANGE: set to never in prod — show-details leaks internal state
+      show-details: when_authorized
+  tracing:
+    sampling:
+      probability: 0.5  # 50% sampling — balance visibility vs cost
+
+logging:
+  level:
+    root: INFO
+    com.taskmaster: INFO

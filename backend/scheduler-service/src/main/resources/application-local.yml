@@ -24,18 +24,12 @@ spring:
     jdbc:
       initialize-schema: always
     properties:
-      org:
-        quartz:
-          scheduler:
-            instanceName: TaskMasterScheduler
-            instanceId: AUTO
-          jobStore:
-            class: org.quartz.impl.jdbcjobstore.JobStoreTX
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-            tablePrefix: QRTZ_
-            isClustered: false
-          threadPool:
-            threadCount: 5
+      org.quartz.scheduler.instanceName: TaskMasterScheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.tablePrefix: QRTZ_
+      org.quartz.jobStore.isClustered: false
+      org.quartz.threadPool.threadCount: 5
 
 keycloak:
   realms:
@@ -45,9 +39,6 @@ keycloak:
       issuer-uri: http://localhost:8180/realms/taskmaster-app
 
 eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
 
@@ -56,13 +47,13 @@ management:
     web:
       exposure:
         include: health,info,prometheus,metrics
-  metrics:
-    export:
-      prometheus:
-        enabled: true
   tracing:
     sampling:
       probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 spring-boot-admin:
   client:

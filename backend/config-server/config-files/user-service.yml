@@ -25,13 +25,15 @@ spring:
 server:
   port: 8081
 
+# CHANGE (prod): use a dedicated service-account client (not admin-cli) with the minimum
+# required permissions. Inject credentials via env vars — never commit real values.
 keycloak:
   admin:
-    server-url: http://keycloak:8180
+    server-url: ${KEYCLOAK_SERVER_URL:http://keycloak:8180}
     realm: master
-    client-id: admin-cli
-    username: admin
-    password: admin
+    client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
+    username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+    password: ${KEYCLOAK_ADMIN_PASSWORD:admin}  # CHANGE: env var in prod
 
 springdoc:
   api-docs:

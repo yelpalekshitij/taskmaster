@@ -9,6 +9,9 @@ import org.springframework.security.core.userdetails.User
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -18,30 +21,40 @@ class SecurityConfig(private val adminServer: AdminServerProperties) {
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         val successHandler = SavedRequestAwareAuthenticationSuccessHandler().apply {
             setTargetUrlParameter("redirectTo")
-            setDefaultTargetUrl("${adminServer.path}/")
+            setDefaultTargetUrl(adminServer.path("/"))
         }
 
         http
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("${adminServer.path}/assets/**").permitAll()
-                    .requestMatchers("${adminServer.path}/actuator/info").permitAll()
-                    .requestMatchers("${adminServer.path}/actuator/health").permitAll()
-                    .requestMatchers("${adminServer.path}/login").permitAll()
+                    .requestMatchers(adminServer.path("/assets/**")).permitAll()
+                    .requestMatchers(adminServer.path("/actuator/info")).permitAll()
+                    .requestMatchers(adminServer.path("/actuator/health")).permitAll()
+                    .requestMatchers(adminServer.path("/login")).permitAll()
                     .anyRequest().authenticated()
             }
             .formLogin { form ->
-                form.loginPage("${adminServer.path}/login")
+                form.loginPage(adminServer.path("/login"))
                     .successHandler(successHandler)
             }
             .logout { logout ->
-                logout.logoutUrl("${adminServer.path}/logout")
+                logout.logoutUrl(adminServer.path("/logout"))
             }
+            // httpBasic lets the SBA JavaScript frontend authenticate API calls directly
+            // without triggering a form-login redirect that would result in a 404 after login.
+            .httpBasic { }
             .csrf { csrf ->
-                csrf.ignoringRequestMatchers(
-                    "${adminServer.path}/instances",
-                    "${adminServer.path}/actuator/**"
-                )
+                // CookieCsrfTokenRepository makes the CSRF token readable by the SBA JS frontend.
+                // Without this, background API calls from the UI fail CSRF checks, trigger a
+                // re-login redirect, and after login the user lands on an API URL → 404.
+                csrf
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
+                    .ignoringRequestMatchers(
+                        AntPathRequestMatcher(adminServer.path("/instances")),
+                        AntPathRequestMatcher(adminServer.path("/instances/**")),
+                        AntPathRequestMatcher(adminServer.path("/actuator/**"))
+                    )
             }
 
         return http.build()

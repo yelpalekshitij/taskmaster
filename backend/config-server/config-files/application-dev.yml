@@ -1,3 +1,54 @@
-# DEV environment placeholder
-# Override with actual dev infrastructure values
-logging.level.com.taskmaster: DEBUG
+# -----------------------------------------------------------------------
+# DEV environment — shared overrides for all services
+# Deploy: set SPRING_PROFILES_ACTIVE=dev on every service container
+# Secrets: inject via environment variables or a secrets manager (Vault, AWS SSM)
+# -----------------------------------------------------------------------
+
+# --- Database -----------------------------------------------------------
+# Point each service at its own dev DB. Override per-service in
+# {service-name}-dev.yml if schemas live on different hosts.
+spring:
+  datasource:
+    # CHANGE: replace with actual dev DB host/port
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:taskmanager}
+    username: ${DB_USERNAME:taskmaster}
+    password: ${DB_PASSWORD:CHANGE_ME}
+
+  # --- Redis -------------------------------------------------------------
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:CHANGE_ME}
+
+  # --- Kafka -------------------------------------------------------------
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+# --- Eureka -------------------------------------------------------------
+eureka:
+  client:
+    service-url:
+      # CHANGE: replace with dev service-registry host
+      defaultZone: http://${SERVICE_REGISTRY_HOST:service-registry}:8761/eureka/
+
+# --- Keycloak -----------------------------------------------------------
+keycloak:
+  realms:
+    admin:
+      issuer-uri: ${KEYCLOAK_ADMIN_ISSUER_URI:http://keycloak:8180/realms/taskmaster-admin}
+      jwk-set-uri: ${KEYCLOAK_ADMIN_JWK_URI:http://keycloak:8180/realms/taskmaster-admin/protocol/openid-connect/certs}
+    app:
+      issuer-uri: ${KEYCLOAK_APP_ISSUER_URI:http://keycloak:8180/realms/taskmaster-app}
+      jwk-set-uri: ${KEYCLOAK_APP_JWK_URI:http://keycloak:8180/realms/taskmaster-app/protocol/openid-connect/certs}
+
+# --- Observability ------------------------------------------------------
+management:
+  tracing:
+    sampling:
+      probability: 1.0  # 100% in dev — reduce to 0.1 in prod
+
+logging:
+  level:
+    root: INFO
+    com.taskmaster: DEBUG

@@ -1,6 +1,5 @@
 # Development overrides — hot reload, debug ports, volume mounts
 # Applied automatically when running: docker compose up
-version: '3.9'
 
 services:
   user-service:

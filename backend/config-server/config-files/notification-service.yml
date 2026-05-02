@@ -25,14 +25,23 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "com.taskmaster.*"
+  # CHANGE (prod): replace Mailhog with a real SMTP relay (AWS SES, SendGrid, etc.)
+  # Example for AWS SES SMTP:
+  #   host: email-smtp.<region>.amazonaws.com
+  #   port: 587
+  #   username: ${SMTP_USERNAME}
+  #   password: ${SMTP_PASSWORD}
+  #   properties:
+  #     mail.smtp.auth: true
+  #     mail.smtp.starttls.enable: true
   mail:
-    host: localhost
-    port: 1025
-    username: ""
-    password: ""
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
     properties:
-      mail.smtp.auth: false
-      mail.smtp.starttls.enable: false
+      mail.smtp.auth: ${SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SMTP_TLS:false}
   security:
     oauth2:
       resourceserver:

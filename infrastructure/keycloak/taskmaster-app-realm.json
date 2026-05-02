@@ -2,7 +2,7 @@
   "realm": "taskmaster-app",
   "displayName": "TaskMaster App",
   "enabled": true,
-  "sslRequired": "external",
+  "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,

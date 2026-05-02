@@ -41,6 +41,14 @@ The API Gateway uses `lb://task-service` in route URIs — Spring Cloud LoadBala
 
 ---
 
+## Security
+
+The registry is intentionally **open** (no authentication) for local development. `SecurityConfig.kt` disables CSRF and permits all requests.
+
+**Reason:** Spring Cloud Netflix 2024.0.x does not transmit Basic Auth credentials embedded in `defaultZone` URLs. Adding HTTP Basic Auth to the server would cause every client's registration to fail with 401. In production, protect the registry at the network layer (private subnet / VPN) rather than with application-level auth.
+
+---
+
 ## Configuration
 
 ```yaml
