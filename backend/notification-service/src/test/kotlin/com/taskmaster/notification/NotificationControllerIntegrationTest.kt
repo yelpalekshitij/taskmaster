@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
+import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -56,6 +57,9 @@ class NotificationControllerIntegrationTest {
 
     @MockBean
     private lateinit var dltConsumer: DltConsumer
+
+    @MockBean
+    private lateinit var javaMailSender: JavaMailSender
 
     @Autowired
     private lateinit var mockMvc: MockMvc

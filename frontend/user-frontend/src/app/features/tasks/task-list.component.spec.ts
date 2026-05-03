@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { provideRouter } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { of, throwError } from 'rxjs';
 import { TaskListComponent } from './task-list.component';
 import { TaskService } from '../../core/services/task.service';
@@ -41,11 +42,14 @@ describe('TaskListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [TaskListComponent],
       providers: [
+        provideRouter([]),
         { provide: TaskService, useValue: mockTaskService },
         { provide: MatDialog, useValue: mockDialog },
       ],
       schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    })
+      .overrideComponent(TaskListComponent, { remove: { imports: [MatDialogModule] } })
+      .compileComponents();
 
     fixture = TestBed.createComponent(TaskListComponent);
     component = fixture.componentInstance;

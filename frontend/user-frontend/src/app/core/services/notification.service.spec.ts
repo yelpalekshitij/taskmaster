@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { ApolloTestingModule, ApolloTestingController } from 'apollo-angular/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NotificationService } from './notification.service';
@@ -41,7 +41,7 @@ describe('NotificationService', () => {
   afterEach(() => controller.verify());
 
   describe('getNotifications', () => {
-    it('emits notification page from server response', () => {
+    it('emits notification page from server response', fakeAsync(() => {
       let result: NotificationPage | undefined;
 
       service.getNotifications(0, 20).subscribe(page => (result = page));
@@ -51,21 +51,27 @@ describe('NotificationService', () => {
       expect(op.operation.variables['size']).toBe(20);
       op.flushData({ notifications: mockPage });
 
-      expect(result).toEqual(mockPage);
-    });
+      flushMicrotasks();
+      tick();
 
-    it('uses default page and size values', () => {
+      expect(result).toEqual(mockPage);
+    }));
+
+    it('uses default page and size values', fakeAsync(() => {
       service.getNotifications().subscribe();
 
       const op = controller.expectOne('GetNotifications');
       expect(op.operation.variables['page']).toBe(0);
       expect(op.operation.variables['size']).toBe(20);
       op.flushData({ notifications: mockPage });
-    });
+
+      flushMicrotasks();
+      tick();
+    }));
   });
 
   describe('getUnreadCount', () => {
-    it('emits the unread count', () => {
+    it('emits the unread count', fakeAsync(() => {
       let result: number | undefined;
 
       service.getUnreadCount().subscribe(count => (result = count));
@@ -73,12 +79,15 @@ describe('NotificationService', () => {
       const op = controller.expectOne('GetUnreadCount');
       op.flushData({ unreadCount: 5 });
 
+      flushMicrotasks();
+      tick();
+
       expect(result).toBe(5);
-    });
+    }));
   });
 
   describe('markAsRead', () => {
-    it('sends notification id to the mutation and returns updated notification', () => {
+    it('sends notification id to the mutation and returns updated notification', fakeAsync(() => {
       let result: Notification | undefined;
 
       service.markAsRead('notif-1').subscribe(n => (result = n));
@@ -87,12 +96,15 @@ describe('NotificationService', () => {
       expect(op.operation.variables['id']).toBe('notif-1');
       op.flushData({ markNotificationRead: { ...mockNotification, read: true } });
 
+      flushMicrotasks();
+      tick();
+
       expect(result?.read).toBe(true);
-    });
+    }));
   });
 
   describe('markAllAsRead', () => {
-    it('calls the markAllNotificationsRead mutation and returns true', () => {
+    it('calls the markAllNotificationsRead mutation and returns true', fakeAsync(() => {
       let result: boolean | undefined;
 
       service.markAllAsRead().subscribe(r => (result = r));
@@ -100,12 +112,15 @@ describe('NotificationService', () => {
       const op = controller.expectOne('MarkAllNotificationsRead');
       op.flushData({ markAllNotificationsRead: true });
 
+      flushMicrotasks();
+      tick();
+
       expect(result).toBe(true);
-    });
+    }));
   });
 
   describe('deleteNotification', () => {
-    it('sends notification id to the mutation and returns true', () => {
+    it('sends notification id to the mutation and returns true', fakeAsync(() => {
       let result: boolean | undefined;
 
       service.deleteNotification('notif-1').subscribe(r => (result = r));
@@ -114,7 +129,10 @@ describe('NotificationService', () => {
       expect(op.operation.variables['id']).toBe('notif-1');
       op.flushData({ deleteNotification: true });
 
+      flushMicrotasks();
+      tick();
+
       expect(result).toBe(true);
-    });
+    }));
   });
 });

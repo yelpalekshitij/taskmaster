@@ -62,6 +62,7 @@ class SecurityConfig {
                     .requestMatchers("/actuator/**").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers("/graphiql/**").permitAll()
+                    .requestMatchers("/graphql/**", "/graphql").permitAll()
                     .anyRequest().authenticated()
             }
             .oauth2ResourceServer { oauth2 ->

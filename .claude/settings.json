@@ -3,7 +3,8 @@
     "allow": [
       "Write(/Users/kshitij/Projects/wkda/kotlin-spring-boot-angular-keycloak/**)",
       "Edit(/Users/kshitij/Projects/wkda/kotlin-spring-boot-angular-keycloak/**)",
-      "Bash(mkdir -p /Users/kshitij/Projects/wkda/kotlin-spring-boot-angular-keycloak/**)"
+      "Bash(mkdir -p /Users/kshitij/Projects/wkda/kotlin-spring-boot-angular-keycloak/**)",
+      "Bash(npm *)"
     ]
   }
 }
