@@ -1,5 +1,7 @@
 # TaskMaster — Multi-Tenant Task Management Platform
 
+![CI](https://github.com/yelpalekshitij/taskmaster/actions/workflows/ci.yml/badge.svg)
+
 > **All APIs are versioned under `/api/v1/`**
 
 A production-grade, microservices-based task management application built with Kotlin/Spring Boot, Angular, Keycloak, Kafka, and a full observability stack. Designed for multi-tenant SaaS use cases.
