@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  backend:
+    name: Backend — Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle.properties', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build all modules (skip tests)
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Test — user-service
+        run: ./gradlew :user-service:test --no-daemon
+
+      - name: Test — task-service
+        run: ./gradlew :task-service:test --no-daemon
+
+      - name: Test — notification-service
+        run: ./gradlew :notification-service:test --no-daemon
+
+      - name: Test — scheduler-service
+        run: ./gradlew :scheduler-service:test --no-daemon
+
+      - name: Test — api-gateway
+        run: ./gradlew :api-gateway:test --no-daemon
+
+      - name: Upload backend test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            backend/user-service/build/reports/tests/test/
+            backend/task-service/build/reports/tests/test/
+            backend/notification-service/build/reports/tests/test/
+            backend/scheduler-service/build/reports/tests/test/
+            backend/api-gateway/build/reports/tests/test/
+          retention-days: 7
+
+  frontend-user:
+    name: Frontend (user-frontend) — Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/user-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend/user-frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend/user-frontend
+        run: npm run build
+
+      - name: Test
+        working-directory: frontend/user-frontend
+        run: npm test
+
+  frontend-admin:
+    name: Frontend (admin-frontend) — Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/admin-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend/admin-frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend/admin-frontend
+        run: npm run build
