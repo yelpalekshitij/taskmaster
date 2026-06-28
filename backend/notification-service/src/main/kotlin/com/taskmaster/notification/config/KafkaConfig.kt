@@ -36,7 +36,7 @@ class KafkaConfig(
         kafkaTemplate: KafkaTemplate<String, String>
     ): ConcurrentKafkaListenerContainerFactory<String, String> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.consumerFactory = consumerFactory
+        factory.setConsumerFactory(consumerFactory)
         factory.setCommonErrorHandler(
             DefaultErrorHandler(
                 DeadLetterPublishingRecoverer(kafkaTemplate),

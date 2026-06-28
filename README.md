@@ -40,7 +40,7 @@ A production-grade, microservices-based task management application built with K
 
 ### Prerequisites
 - Docker 24+ and Docker Compose v2
-- JDK 21+ (for local development only)
+- JDK 25+ (for local development only)
 - Node 20+ (for local Angular development only)
 
 ### 1. Clone and start
@@ -327,7 +327,7 @@ When running under Docker Compose, browser requests reach Keycloak via Docker's 
 The gateway proxies api-docs requests via Eureka (`lb://user-service/...`). If Eureka is empty, every proxy returns 503. Check `http://localhost:8761` — all 7 services should appear as UP. If services are missing, check their logs for registration errors and verify the service-registry container is healthy.
 
 ### Services fail to register with Eureka (401)
-Spring Cloud Netflix 2024.0.x does not send Basic Auth credentials that are embedded in `defaultZone` URLs. The service-registry `SecurityConfig` therefore permits all requests (no auth). If you see 401 in service logs, verify `SecurityConfig.kt` exists in `backend/service-registry/src/main/kotlin/com/taskmaster/registry/config/` and that the service-registry image has been rebuilt after any changes.
+Spring Cloud Netflix 2025.1.x does not send Basic Auth credentials that are embedded in `defaultZone` URLs. The service-registry `SecurityConfig` therefore permits all requests (no auth). If you see 401 in service logs, verify `SecurityConfig.kt` exists in `backend/service-registry/src/main/kotlin/com/taskmaster/registry/config/` and that the service-registry image has been rebuilt after any changes.
 
 ---
 
@@ -335,7 +335,7 @@ Spring Cloud Netflix 2024.0.x does not send Basic Auth credentials that are embe
 
 | Layer | Technology |
 |---|---|
-| Backend | Kotlin 2.1, Spring Boot 3.4, Spring Security, Spring Cloud |
+| Backend | Kotlin 2.3, Spring Boot 4.1, Spring Security, Spring Cloud |
 | API Layer | Spring Cloud Gateway, Spring GraphQL, OpenFeign |
 | Auth | Keycloak 26, OAuth2/OIDC, JWT |
 | Database | PostgreSQL 17, Flyway migrations, JPA/Hibernate |

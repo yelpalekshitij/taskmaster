@@ -1,13 +1,13 @@
 package com.taskmaster.task
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.taskmaster.task.outbox.OutboxRelay
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.cache.CacheManager
 import org.springframework.cache.support.NoOpCacheManager
 import org.springframework.context.annotation.Bean
@@ -23,7 +23,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.util.UUID
@@ -45,7 +45,7 @@ class TaskGraphQlIntegrationTest {
     companion object {
         @Container
         @JvmStatic
-        val postgres = PostgreSQLContainer<Nothing>("postgres:15")
+        val postgres = PostgreSQLContainer("postgres:15")
 
         @DynamicPropertySource
         @JvmStatic
@@ -56,7 +56,7 @@ class TaskGraphQlIntegrationTest {
         }
     }
 
-    @MockBean
+    @MockitoBean
     private lateinit var outboxRelay: OutboxRelay
 
     @Autowired

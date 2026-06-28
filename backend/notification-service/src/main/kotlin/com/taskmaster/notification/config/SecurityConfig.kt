@@ -38,7 +38,7 @@ class SecurityConfig {
         decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(claimedIssuer))
         val provider = JwtAuthenticationProvider(decoder)
         provider.setJwtAuthenticationConverter(jwtAuthenticationConverter())
-        return AuthenticationManager { auth -> provider.authenticate(auth) }
+        return AuthenticationManager { auth -> provider.authenticate(auth)!! }
     }
 
     @Bean

@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM eclipse-temurin:25-jre-alpine AS runtime
 WORKDIR /app
 COPY backend/config-server/build/libs/*.jar app.jar
 COPY backend/config-server/config-files/ ./config-files/

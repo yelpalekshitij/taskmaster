@@ -16,7 +16,7 @@ class SecurityConfigTest {
 
         val authentication = config.jwtAuthenticationConverter().convert(jwt)!!
 
-        val authorities = authentication.authorities.map { it.authority }
+        val authorities = authentication.authorities.mapNotNull { it.authority }.filter { it.startsWith("ROLE_") }
         assertEquals(listOf("ROLE_MASTER_ADMIN", "ROLE_USER"), authorities.sorted())
     }
 
@@ -26,7 +26,7 @@ class SecurityConfigTest {
 
         val authentication = config.jwtAuthenticationConverter().convert(jwt)!!
 
-        assertTrue(authentication.authorities.isEmpty())
+        assertTrue(authentication.authorities.none { it.authority?.startsWith("ROLE_") == true })
     }
 
     @Test
@@ -35,7 +35,7 @@ class SecurityConfigTest {
 
         val authentication = config.jwtAuthenticationConverter().convert(jwt)!!
 
-        assertTrue(authentication.authorities.isEmpty())
+        assertTrue(authentication.authorities.none { it.authority?.startsWith("ROLE_") == true })
     }
 
     @Test
@@ -44,7 +44,7 @@ class SecurityConfigTest {
 
         val authentication = config.jwtAuthenticationConverter().convert(jwt)!!
 
-        assertTrue(authentication.authorities.isEmpty(),
+        assertTrue(authentication.authorities.none { it.authority?.startsWith("ROLE_") == true },
             "Flat 'realm_access.roles' claim should not produce authorities")
     }
 

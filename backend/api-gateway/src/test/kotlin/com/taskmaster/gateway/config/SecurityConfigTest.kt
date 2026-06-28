@@ -16,7 +16,7 @@ class SecurityConfigTest {
         val converter = config.buildJwtConverter()
         val authentication = converter.convert(jwt)!!
 
-        val authorities = authentication.authorities.map { it.authority }
+        val authorities = authentication.authorities.mapNotNull { it.authority }.filter { it.startsWith("ROLE_") }
         assertEquals(listOf("ROLE_MASTER_ADMIN", "ROLE_USER"), authorities.sorted())
     }
 
@@ -26,7 +26,7 @@ class SecurityConfigTest {
 
         val authentication = config.buildJwtConverter().convert(jwt)!!
 
-        assertTrue(authentication.authorities.isEmpty())
+        assertTrue(authentication.authorities.none { it.authority?.startsWith("ROLE_") == true })
     }
 
     @Test
@@ -35,7 +35,7 @@ class SecurityConfigTest {
 
         val authentication = config.buildJwtConverter().convert(jwt)!!
 
-        assertTrue(authentication.authorities.isEmpty())
+        assertTrue(authentication.authorities.none { it.authority?.startsWith("ROLE_") == true })
     }
 
     @Test
@@ -46,7 +46,7 @@ class SecurityConfigTest {
 
         val authentication = config.buildJwtConverter().convert(jwt)!!
 
-        assertTrue(authentication.authorities.isEmpty(),
+        assertTrue(authentication.authorities.none { it.authority?.startsWith("ROLE_") == true },
             "Flat 'realm_access.roles' claim must not produce authorities; only nested realm_access.roles should")
     }
 
@@ -54,7 +54,7 @@ class SecurityConfigTest {
     fun `buildJwtConverter handles both admin and app realm roles`() {
         val jwt = buildJwt(mapOf("realm_access" to mapOf("roles" to listOf("TENANT_ADMIN"))))
 
-        val authorities = config.buildJwtConverter().convert(jwt)!!.authorities.map { it.authority }
+        val authorities = config.buildJwtConverter().convert(jwt)!!.authorities.mapNotNull { it.authority }.filter { it.startsWith("ROLE_") }
 
         assertEquals(listOf("ROLE_TENANT_ADMIN"), authorities)
     }

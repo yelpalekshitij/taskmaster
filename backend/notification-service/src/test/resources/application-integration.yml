@@ -2,6 +2,8 @@ spring:
   cloud:
     config:
       enabled: false
+    compatibility-verifier:
+      enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/taskmaster_notifications
     username: test

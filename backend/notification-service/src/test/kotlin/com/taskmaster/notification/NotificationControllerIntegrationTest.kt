@@ -1,6 +1,6 @@
 package com.taskmaster.notification
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.taskmaster.notification.kafka.DltConsumer
 import com.taskmaster.notification.kafka.NotificationEventConsumer
 import com.taskmaster.notification.notification.Notification
@@ -10,9 +10,9 @@ import com.taskmaster.notification.notification.SendNotificationRequest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.http.MediaType
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.util.UUID
@@ -41,7 +41,7 @@ class NotificationControllerIntegrationTest {
     companion object {
         @Container
         @JvmStatic
-        val postgres = PostgreSQLContainer<Nothing>("postgres:15")
+        val postgres = PostgreSQLContainer("postgres:15")
 
         @DynamicPropertySource
         @JvmStatic
@@ -52,13 +52,13 @@ class NotificationControllerIntegrationTest {
         }
     }
 
-    @MockBean
+    @MockitoBean
     private lateinit var notificationEventConsumer: NotificationEventConsumer
 
-    @MockBean
+    @MockitoBean
     private lateinit var dltConsumer: DltConsumer
 
-    @MockBean
+    @MockitoBean
     private lateinit var javaMailSender: JavaMailSender
 
     @Autowired

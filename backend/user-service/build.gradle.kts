@@ -20,8 +20,8 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-config-client")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-    implementation("org.flywaydb:flyway-core")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.postgresql:postgresql")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
@@ -31,13 +31,14 @@ dependencies {
     implementation("org.keycloak:keycloak-admin-client:26.0.0") {
         exclude(group = "org.slf4j")
     }
-    implementation("de.codecentric:spring-boot-admin-starter-client:3.3.4")
-    implementation("org.jolokia:jolokia-support-spring:2.1.1")
+    implementation("de.codecentric:spring-boot-admin-starter-client:4.0.1")
+    implementation("org.jolokia:jolokia-support-spring:2.1.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.mockk:mockk:1.13.13")
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("com.github.tomakehurst:wiremock-standalone:3.0.1")
 }

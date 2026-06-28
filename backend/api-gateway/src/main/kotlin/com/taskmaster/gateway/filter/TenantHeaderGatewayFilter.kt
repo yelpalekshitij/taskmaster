@@ -33,7 +33,7 @@ class TenantHeaderGatewayFilter : GlobalFilter, Ordered {
             .cast(JwtAuthenticationToken::class.java)
             .flatMap { jwtToken ->
                 val token = jwtToken.token
-                val tenantId = token.getClaim<String?>("tenant_id") ?: ""
+                val tenantId = token.getClaim<String>("tenant_id") ?: ""
                 val userId = token.subject ?: ""
 
                 log.debug("Injecting headers — tenantId={}, userId={}", tenantId, userId)

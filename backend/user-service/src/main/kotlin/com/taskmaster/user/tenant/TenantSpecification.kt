@@ -26,7 +26,7 @@ object TenantSpecification {
     }
 
     fun buildSpec(name: String?, active: Boolean?, domain: String?): Specification<Tenant> {
-        var spec: Specification<Tenant> = Specification.where(null)
+        var spec: Specification<Tenant> = Specification.unrestricted()
         nameContains(name)?.let { spec = spec.and(it) }
         isActive(active)?.let { spec = spec.and(it) }
         domainContains(domain)?.let { spec = spec.and(it) }

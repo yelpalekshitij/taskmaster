@@ -13,7 +13,7 @@ import java.util.UUID
 
 @Component
 @Order(2)
-class LoggingMdcFilter(private val tracer: Tracer) : OncePerRequestFilter() {
+class LoggingMdcFilter(private val tracer: Tracer?) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -21,7 +21,7 @@ class LoggingMdcFilter(private val tracer: Tracer) : OncePerRequestFilter() {
         filterChain: FilterChain
     ) {
         try {
-            val span = tracer.currentSpan()
+            val span = tracer?.currentSpan()
             span?.context()?.let { ctx ->
                 MDC.put("traceId", ctx.traceId())
                 MDC.put("spanId", ctx.spanId())

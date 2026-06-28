@@ -9,7 +9,7 @@ import io.micrometer.tracing.Tracer
 import io.mockk.every
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
@@ -50,6 +50,12 @@ class ReportsControllerSecurityTest {
 
         @Bean
         fun tracer(): Tracer = io.mockk.mockk(relaxed = true)
+
+        // @EnableCaching is active on the application class but @WebMvcTest does not
+        // auto-configure a CacheManager, so provide a simple in-memory one for the slice.
+        @Bean
+        fun cacheManager(): org.springframework.cache.CacheManager =
+            org.springframework.cache.concurrent.ConcurrentMapCacheManager()
     }
 
     // --- /api/v1/reports/global ---

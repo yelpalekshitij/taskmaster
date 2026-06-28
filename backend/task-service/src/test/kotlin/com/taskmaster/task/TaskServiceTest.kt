@@ -1,6 +1,6 @@
 package com.taskmaster.task
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import com.taskmaster.task.comment.TaskCommentRepository
 import com.taskmaster.task.history.TaskHistoryService
 import com.taskmaster.task.outbox.OutboxEvent

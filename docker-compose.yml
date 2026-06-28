@@ -155,7 +155,7 @@ services:
   # Increase replication factors to 3 and set min.insync.replicas=2.
   kafka:
     <<: *service-defaults
-    image: confluentinc/cp-kafka:7.7.0
+    image: confluentinc/cp-kafka:8.3.0
     container_name: taskmaster-kafka
     environment:
       KAFKA_NODE_ID: 1
@@ -183,7 +183,7 @@ services:
 
   kafka-init:
     <<: *service-defaults
-    image: confluentinc/cp-kafka:7.7.0
+    image: confluentinc/cp-kafka:8.3.0
     container_name: taskmaster-kafka-init
     depends_on:
       kafka:
@@ -199,7 +199,7 @@ services:
 
   kafka-ui:
     <<: *service-defaults
-    image: provectuslabs/kafka-ui:latest
+    image: ghcr.io/kafbat/kafka-ui:v1.5.0
     container_name: taskmaster-kafka-ui
     depends_on:
       kafka:

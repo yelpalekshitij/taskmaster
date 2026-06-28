@@ -1203,7 +1203,7 @@ All services permit `/actuator/**` without authentication (configured in each se
 
 ### Jolokia / JMX
 
-JVM and JMX access uses [Jolokia 2.x](https://jolokia.org/) (`org.jolokia:jolokia-support-spring:2.1.1`), which bridges JMX over HTTP. Registered at `/actuator/jolokia` on each service. The api-gateway (WebFlux/reactive) does **not** include Jolokia since Jolokia requires the Servlet stack.
+JVM and JMX access uses [Jolokia 2.x](https://jolokia.org/) (`org.jolokia:jolokia-support-spring:2.1.0`), which bridges JMX over HTTP. Registered at `/actuator/jolokia` on each service. The api-gateway (WebFlux/reactive) does **not** include Jolokia since Jolokia requires the Servlet stack.
 
 ### Build Info
 

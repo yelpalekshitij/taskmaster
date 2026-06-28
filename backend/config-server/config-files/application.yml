@@ -1,6 +1,10 @@
 # Shared configuration for ALL services
 spring:
   cloud:
+    # Spring Cloud 2025.1.x targets Spring Boot 4.0.x; we run on the 4.1 milestone,
+    # so the version-compatibility verifier would otherwise abort startup.
+    compatibility-verifier:
+      enabled: false
     loadbalancer:
       ribbon:
         enabled: false
